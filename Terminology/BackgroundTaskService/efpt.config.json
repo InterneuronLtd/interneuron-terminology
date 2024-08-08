@@ -1,0 +1,88 @@
+﻿{
+   "CodeGenerationMode": 2,
+   "ContextClassName": "TerminologyDBContext",
+   "ContextNamespace": "",
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": "",
+   "OutputContextPath": "Repository\\DBModelsContext",
+   "OutputPath": "Model\\DomainModels",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "Interneuron.Terminology.BackgroundTaskService",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 0,
+   "SelectedToBeGenerated": 0,
+   "Tables": [
+      {
+         "Name": "local_formulary.formulary_additional_code",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_change_log",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_detail",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_excipient",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_header",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_indication",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_ingredient",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_local_route_detail",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_ontology_form",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_route_detail",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_rule_config",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_usage_stats",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.lookup_common",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": ".mmc_dev_delta",
+   "UncountableWords": null,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDbContextSplitting": false,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": true,
+   "UseHierarchyId": false,
+   "UseInflector": false,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoDefaultConstructor": true,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": true,
+   "UseSchemaFolders": false,
+   "UseSpatial": false,
+   "UseT4": false
+}

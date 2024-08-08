@@ -1,0 +1,91 @@
+﻿{
+   "CodeGenerationMode": 2,
+   "ContextClassName": "TerminologyDBContext",
+   "ContextNamespace": null,
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": true,
+   "IncludeConnectionString": false,
+   "ModelNamespace": null,
+   "OutputContextPath": null,
+   "OutputPath": "Models",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "Interneuron.Terminology.Utility",
+   "Schemas": [
+      {
+         "Name": "local_formulary"
+      }
+   ],
+   "SelectedHandlebarsLanguage": 0,
+   "SelectedToBeGenerated": 0,
+   "T4TemplatePath": null,
+   "Tables": [
+      {
+         "Name": "local_formulary.formulary_additional_code",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_detail",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_excipient",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_header",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_indication",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_ingredient",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_local_route_detail",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_ontology_form",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_route_detail",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_rule_config",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.formulary_usage_stats",
+         "ObjectType": 0
+      },
+      {
+         "Name": "local_formulary.lookup_common",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": ".mmc_dev_playground",
+   "UncountableWords": null,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDateOnlyTimeOnly": false,
+   "UseDbContextSplitting": false,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": true,
+   "UseHierarchyId": false,
+   "UseInflector": false,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UseSchemaFolders": false,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": false,
+   "UseT4": false
+}

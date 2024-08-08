@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talendfile:ContextType xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd" xmi:id="_-3ajkFTMEeuE1_2p0lH4fg" confirmationNeeded="false" name="Default">
+  <contextParameter xmi:id="_-3ajkVTMEeuE1_2p0lH4fg" comment="" name="formulary_db_script_path" prompt="formulary_db_script_path?" promptNeeded="true" type="id_String" value="C:\SNOMED_DMD\DBScript"/>
+  <contextParameter xmi:id="_-3ajklTMEeuE1_2p0lH4fg" comment="" name="formulary_db_host" prompt="formulary_db_host?" promptNeeded="true" type="id_String" value="interneuron-ne-db-test.postgres.database.azure.com"/>
+  <contextParameter xmi:id="_-3ajk1TMEeuE1_2p0lH4fg" comment="" name="formulary_db_port" prompt="formulary_db_port?" promptNeeded="true" type="id_Integer" value="5432"/>
+  <contextParameter xmi:id="_-3ajlFTMEeuE1_2p0lH4fg" comment="" name="formulary_db_user" prompt="formulary_db_user?" promptNeeded="true" type="id_String" value="nedbtestadmin@interneuron-ne-db-test"/>
+  <contextParameter xmi:id="_-3ajlVTMEeuE1_2p0lH4fg" comment="" name="formulary_db_password" prompt="formulary_db_password?" promptNeeded="true" type="id_Password" value="enc:system.encryption.key.v1:Qd+yY8qStutyfNqnCS2cayDS8tWYpTP9esdn1098V5wEwWBPy/K+AxFgjg=="/>
+  <contextParameter xmi:id="_-3ajllTMEeuE1_2p0lH4fg" comment="" name="formulary_db_pwd_string" prompt="formulary_db_pwd_string?" promptNeeded="true" type="id_String" value="N3ur0n!nedbtest"/>
+  <contextParameter xmi:id="_-3ajl1TMEeuE1_2p0lH4fg" comment="" name="formulary_db_schema" prompt="formulary_db_schema?" promptNeeded="true" type="id_String" value="local_formulary"/>
+  <contextParameter xmi:id="_-3ajmFTMEeuE1_2p0lH4fg" comment="" name="formulary_db_name" prompt="formulary_db_name?" promptNeeded="true" type="id_String" value="mcc_terminology"/>
+  <contextParameter xmi:id="_-3ajmVTMEeuE1_2p0lH4fg" comment="" name="formulary_db_additionalparams" prompt="formulary_db_additionalparams?" promptNeeded="false" type="id_String" value=""/>
+  <contextParameter xmi:id="_-3ajmlTMEeuE1_2p0lH4fg" comment="" name="formulary_db_psql_path" prompt="formulary_db_psql_path?" promptNeeded="true" type="id_String" value="C:\Program Files\PostgreSQL\11\bin"/>
+  <contextParameter xmi:id="_-3ajm1TMEeuE1_2p0lH4fg" comment="" name="formulary_file_path" prompt="formulary_file_path?" promptNeeded="true" type="id_String" value=""/>
+</talendfile:ContextType>

@@ -1,0 +1,81 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Deployables\1.1\**" />
+    <Content Remove="Deployables\1.1\**" />
+    <EmbeddedResource Remove="Deployables\1.1\**" />
+    <None Remove="Deployables\1.1\**" />
+    <None Remove="AppCode\Commands\FormularyCommand - Copy.Create.cs.bkp" />
+    <None Remove="AppCode\Commands\FormularyCommand - Copy.Edit.cs.bkp" />
+    <None Remove="AppCode\Commands\FormularyCommand - Copy.FileImport.cs.bkp" />
+    <None Remove="AppCode\Commands\FormularyCommand - Copy.Import.cs.bkp" />
+    <None Remove="Controllers\Utility\FormularyUtilController.cs.old" />
+    <None Remove="RestSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="AppCode\Queries\FormularyRuleBasedQueryProcessor\RuleBoundAMPFormularyBuilder_copy.cs.tbr" />
+    <None Remove="AppCode\Queries\FormularyRuleBasedQueryProcessor\RuleBoundVMPFormularyBuilder - Copy.cs.tbr" />
+    <None Remove="AppCode\Queries\FormularyRuleBasedQueryProcessor\RuleBoundVTMFormularyBuilder - Copy.cs.tbr" />
+    <None Remove="AppCode\Validators\CreateFormularyRequestValidator.cs.bkp" />
+    <None Remove="AppCode\Validators\EditFormularyRequestValidator.cs.bkp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="AppCode\Queries\FormularyRuleBasedQueryProcessor\RuleBoundAMPFormularyBuilder_copy.cs.tbr" />
+    <Compile Include="AppCode\Queries\FormularyRuleBasedQueryProcessor\RuleBoundVMPFormularyBuilder - Copy.cs.tbr" />
+    <Compile Include="AppCode\Queries\FormularyRuleBasedQueryProcessor\RuleBoundVTMFormularyBuilder - Copy.cs.tbr" />
+    <Compile Include="AppCode\Validators\CreateFormularyRequestValidator.cs.bkp" />
+    <Compile Include="AppCode\Validators\EditFormularyRequestValidator.cs.bkp" />
+    <Compile Include="Controllers\Utility\FormularyUtilController.cs.old" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="6.0.4" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="CompareNETObjects" Version="4.78.0" />
+    <PackageReference Include="Elastic.Apm.NetCoreAll" Version="1.18.0" />
+    <PackageReference Include="Elastic.Apm.SerilogEnricher" Version="1.5.3" />
+    <PackageReference Include="Elastic.CommonSchema.Serilog" Version="1.5.3" />
+    <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
+    <PackageReference Include="Interneuron.Caching" Version="3.0.0" />
+    <PackageReference Include="Interneuron.Common" Version="3.0.0" />
+    <PackageReference Include="Interneuron.CustomExceptions" Version="3.0.0" />
+    <PackageReference Include="Interneuron.FDBAPI.Client" Version="2.0.0" />
+    <PackageReference Include="Interneuron.Web.Exceptions" Version="3.0.0" />
+    <PackageReference Include="Interneuron.Web.Logger" Version="3.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.5" />
+    <PackageReference Include="Serilog" Version="2.12.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
+    <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
+    <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="8.4.1" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="3.4.0" />
+    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.4.1" />
+    <PackageReference Include="Serilog.Sinks.PostgreSQL" Version="2.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.3.1" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.18" />
+    <PackageReference Include="RestSharp" Version="108.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Model\Interneuron.Terminology.Model.csproj" />
+    <ProjectReference Include="..\Repository\Interneuron.Terminology.Repository.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AppCode\DSLs\" />
+    <Folder Include="Deployables\ETLJobs_Source\" />
+  </ItemGroup>
+
+</Project>

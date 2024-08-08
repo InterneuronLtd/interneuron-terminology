@@ -1,0 +1,477 @@
+﻿//using AutoMapper;
+//using Interneuron.Common.Extensions;
+//using Interneuron.Terminology.BackgroundTaskService.AppCode.DataService.APIModels;
+//using Interneuron.Terminology.BackgroundTaskService.Infrastructure.Domain;
+//using Interneuron.Terminology.BackgroundTaskService.Model;
+//using Interneuron.Terminology.BackgroundTaskService.Model.DomainModels;
+//using Interneuron.Terminology.BackgroundTaskService.Repository;
+//using KellermanSoftware.CompareNetObjects;
+//using KellermanSoftware.CompareNetObjects.TypeComparers;
+//using Newtonsoft.Json;
+//using System.Collections.Concurrent;
+//using System.Runtime.InteropServices;
+
+//namespace Interneuron.Terminology.BackgroundTaskService.AppCode.Handlers
+//{
+//    /// <summary>
+//    /// This class identifies the delta between existing and new DMD and persists the differences
+//    /// </summary>
+//    public class DeltaIdentificationHandler
+//    {
+//        private IServiceProvider _serviceProvider;
+//        private readonly IMapper _mapper;
+//        private Dictionary<string, string> _propertyCategoryLkp;
+//        private ComparisonConfig _productPropertiesRootConfig;
+//        private Dictionary<Type, IEnumerable<string>> _formularyPropertiesCodeSpec;
+//        private ComparisonConfig _productPropertiesAdditionalCodeConfig;
+//        private ComparisonConfig _productPropertiesDetailConfig;
+//        private List<string> _testCodes;
+
+//        public DeltaIdentificationHandler(IServiceProvider serviceProvider, IMapper mapper)
+//        {
+//            _serviceProvider = serviceProvider;
+//            _mapper = mapper;
+//            PreparePopertyCategoryLkp();
+//            PrepareConfiguration();
+//        }
+
+//        private void PrepareConfiguration()
+//        {
+//            _productPropertiesRootConfig = GetHeaderConfig();
+
+//            _formularyPropertiesCodeSpec = GetFormularyPropsCodeSpec();
+
+//            _productPropertiesAdditionalCodeConfig = GetAssociatedEntitiesConfig();
+
+//            _productPropertiesDetailConfig = GetFormularyDetailConfig();
+//        }
+
+//        private void PreparePopertyCategoryLkp()
+//        {
+//            _propertyCategoryLkp = new Dictionary<string, string>();
+//            _propertyCategoryLkp.Add("DETAIL", "Detail");
+//            _propertyCategoryLkp.Add("ADDITIONALCODES", "Detail");
+
+//            _propertyCategoryLkp.Add("INGREDIENTS", "Posology");
+//            _propertyCategoryLkp.Add("EXCIPIENTS", "Posology");
+//            _propertyCategoryLkp.Add("ROUTES", "Posology");
+//            _propertyCategoryLkp.Add("LOCALROUTES", "Posology");
+
+//            _propertyCategoryLkp.Add("NAME", "Detail");
+//            _propertyCategoryLkp.Add("PARENTCODE", "Detail");
+//            _propertyCategoryLkp.Add("PREVCODE", "Detail");
+//            _propertyCategoryLkp.Add("VTMID", "Detail");
+//            _propertyCategoryLkp.Add("VMPID", "Detail");
+//            _propertyCategoryLkp.Add("ISDMDINVALID", "Detail");
+//            _propertyCategoryLkp.Add("ISDMDDELETED", "Detail");
+//            _propertyCategoryLkp.Add("BASISOFPREFERREDNAMECD", "Detail");
+//            _propertyCategoryLkp.Add("BASISOFPREFERREDNAMEDESC", "Detail");
+//            _propertyCategoryLkp.Add("CURRENTLICENSINGAUTHORITYCD", "Detail");
+//            _propertyCategoryLkp.Add("CURRENTLICENSINGAUTHORITYDESC", "Detail");
+//            _propertyCategoryLkp.Add("SUPPLIERCD", "Detail");
+//            _propertyCategoryLkp.Add("SUPPLIERNAME", "Detail");
+//            _propertyCategoryLkp.Add("DOSEFORMCD", "Posology");
+//            _propertyCategoryLkp.Add("DOSEFORMDESC", "Posology");
+//            _propertyCategoryLkp.Add("FORMCD", "Posology");
+//            _propertyCategoryLkp.Add("FORMDESC", "Posology");
+//            _propertyCategoryLkp.Add("UNITDOSEFORMSIZE", "Posology");
+//            _propertyCategoryLkp.Add("UNITDOSEFORMUNITS", "Posology");
+//            _propertyCategoryLkp.Add("UNITDOSEFORMUNITSDESC", "Posology");
+//            _propertyCategoryLkp.Add("UNITDOSEUNITOFMEASURECD", "Posology");
+//            _propertyCategoryLkp.Add("UNITDOSEUNITOFMEASUREDESC", "Posology");
+//            _propertyCategoryLkp.Add("CONTROLLEDDRUGCATEGORYCD", "Guidance");
+//            _propertyCategoryLkp.Add("CONTROLLEDDRUGCATEGORYDESC", "Guidance");
+//            _propertyCategoryLkp.Add("RESTRICTIONSONAVAILABILITYCD", "Guidance");
+//            _propertyCategoryLkp.Add("RESTRICTIONSONAVAILABILITYDESC", "Guidance");
+//            _propertyCategoryLkp.Add("PRESCRIBINGSTATUSCD", "Guidance");
+//            _propertyCategoryLkp.Add("PRESCRIBINGSTATUSDESC", "Guidance");
+//            _propertyCategoryLkp.Add("EMAADDITIONALMONITORING", "Flags");
+//            _propertyCategoryLkp.Add("PRESCRIBABLE", "Flags");
+//            _propertyCategoryLkp.Add("SUGARFREE", "Flags");
+//            _propertyCategoryLkp.Add("GLUTENFREE", "Flags");
+//            _propertyCategoryLkp.Add("PRESERVATIVEFREE", "Flags");
+//            _propertyCategoryLkp.Add("CFCFREE", "Flags");
+//            _propertyCategoryLkp.Add("UNLICENSEDMEDICATIONCD", "Flags");
+//            _propertyCategoryLkp.Add("PARALLELIMPORT", "Flags");
+//        }
+
+//        public async Task PersistDeltas(List<string> testCodes = null)
+//        {
+//            _testCodes = testCodes;
+//            //Pull all the DMD records that are both in 'Active' and 'Draft', compare it and persist the differences in DM+D properties
+
+//            var unitOfWork = _serviceProvider.GetService<IUnitOfWork>();
+
+//            var repo = unitOfWork.FormularyHeaderFormularyRepository;
+            
+//            await repo.TruncateFormularyChangeLog();
+
+//            var ampCodes = _testCodes?.ToArray() ?? repo.ItemsAsReadOnly.Where(rec => rec.IsLatest == true && rec.ProductType == "AMP" && (rec.RecStatusCode == TerminologyConstants.RECORDSTATUS_DRAFT || rec.RecStatusCode == TerminologyConstants.RECORDSTATUS_ACTIVE))?.Select(rec=> rec.Code).ToArray();
+
+//            if (!ampCodes.IsCollectionValid()) return;
+
+//            var batchsize = 200;
+
+//            var batchedRequests = new List<string[]>();
+//            for (var reqIndex = 0; reqIndex < ampCodes.Length; reqIndex += batchsize)
+//            {
+//                //var batches = ampCodes.AsSpan().Slice(reqIndex, batchsize);
+//                var batches = ampCodes.Skip(reqIndex).Take(batchsize);
+//                batchedRequests.Add(batches.ToArray());
+//            }
+
+//            if (!batchedRequests.IsCollectionValid()) return;
+
+//            Parallel.ForEach(batchedRequests, new ParallelOptions() { MaxDegreeOfParallelism = 3 }, async (req) =>
+//            {
+//                //foreach (var req in batchedRequests)
+//                //{
+//                var savingUnitOfWork = _serviceProvider.GetService<IUnitOfWork>();
+
+//                //var ampsInDraftOrActive = savingUnitOfWork.FormularyHeaderFormularyRepository.GetLatestFormulariesByCodes(req)?.ToList();
+//                var ampsInDraftOrActiveQry = savingUnitOfWork.FormularyHeaderFormularyRepository.GetLatestFormulariesByCodesAsQueryable().Where(rec => rec.IsLatest == true && rec.ProductType == "AMP" && req.Contains(rec.Code) && (rec.RecStatusCode == TerminologyConstants.RECORDSTATUS_DRAFT || rec.RecStatusCode == TerminologyConstants.RECORDSTATUS_ACTIVE));
+
+//                var ampsInDraftOrActive = ampsInDraftOrActiveQry.ToList();
+
+//                if (!ampsInDraftOrActive.IsCollectionValid()) return;
+
+//                var (hasBothDraftAndActive, drafts, actives) = GetRecordsHavingActiveAndDraft(ampsInDraftOrActive);
+
+//                if (!hasBothDraftAndActive.IsCollectionValid()) return;
+
+//                var dict = GetRecordsToCompareAsLkp();
+
+//                Dictionary<string, (FormularyHeader Active, FormularyHeader Draft)> GetRecordsToCompareAsLkp()
+//                {
+//                    var coll = new Dictionary<string, (FormularyHeader Active, FormularyHeader Draft)>();
+
+//                    foreach (var rec in CollectionsMarshal.AsSpan(hasBothDraftAndActive.Distinct().ToList()))
+//                    {
+//                        coll[rec] = (Active: actives[rec], Draft: drafts[rec]);
+//                    }
+
+//                    return coll;
+//                }
+
+//                var deltas = new ConcurrentBag<DeltaDetail>();
+
+//                dict.Keys.AsParallel().Each(k =>
+//                {
+//                    var delta = AssignDelta(dict[k]);
+//                    deltas.Add(delta);
+//                });
+
+//                if (!deltas.IsCollectionValid()) return;
+
+//                var deltaLogs = _mapper.Map<FormularyChangeLog[]>(deltas.ToArray());
+
+//                savingUnitOfWork.FormularyChangeLogFormularyRepository.AddRange(deltaLogs);
+
+//                await savingUnitOfWork.SaveAsync();
+//            });
+
+//            //}
+//            await unitOfWork.FormularyChangeLogFormularyRepository.RefreshFormularyChangeLogMaterializedView();
+
+//        }
+
+//        private DeltaDetail AssignDelta((FormularyHeader Active, FormularyHeader Draft) currentRecord)
+//        {
+//            var delta = new DeltaDetail();
+//            delta.Code = currentRecord.Draft.Code;
+//            delta.Name = currentRecord.Draft.Name;
+//            delta.ParentCode = currentRecord.Draft.ParentCode;
+//            delta.ProductType = currentRecord.Draft.ProductType;
+//            delta.EntitiesCompared = JsonConvert.SerializeObject(new { Active = currentRecord.Active, Draft = currentRecord.Draft }, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+
+//            var prodPropertiesComparer = new CompareLogic(_productPropertiesRootConfig);
+//            var result = prodPropertiesComparer.Compare(currentRecord.Active, currentRecord.Draft);
+//            var diffs = result.Differences;
+//            CaptureDelta(delta, diffs, "Root");
+
+//            var addnlCodes = GetAddnlCodes(currentRecord);
+
+//            if (addnlCodes.Draft.IsCollectionValid() || addnlCodes.Active.IsCollectionValid())
+//            {
+//                var prodAddnlCodesComparerComparer = new CompareLogic(_productPropertiesAdditionalCodeConfig);
+//                var result1 = prodAddnlCodesComparerComparer.Compare(addnlCodes.Active, addnlCodes.Draft);
+//                var diffs1 = result1.Differences;
+//                CaptureDelta(delta, diffs1, "ADDITIONALCODES");
+//            }
+
+//            var localRoutes = GetLocalRoutes(currentRecord);
+//            if (localRoutes.Active.IsCollectionValid() || localRoutes.Draft.IsCollectionValid())
+//            {
+//                var prodAddnlCodesComparerComparer = new CompareLogic(_productPropertiesAdditionalCodeConfig);
+//                var result1 = prodAddnlCodesComparerComparer.Compare(localRoutes.Active, localRoutes.Draft);
+//                var diffs1 = result1.Differences;
+//                CaptureDelta(delta, diffs1, "LOCALROUTES");
+//            }
+
+//            var routes = GetRoutes(currentRecord);
+//            if (routes.Active.IsCollectionValid() || routes.Draft.IsCollectionValid())
+//            {
+//                var prodAddnlCodesComparerComparer = new CompareLogic(_productPropertiesAdditionalCodeConfig);
+//                var result1 = prodAddnlCodesComparerComparer.Compare(routes.Active, routes.Draft);
+//                var diffs1 = result1.Differences;
+//                CaptureDelta(delta, diffs1, "ROUTES");
+//            }
+
+//            var ingredients = GetIngredients(currentRecord);
+//            if (ingredients.Draft.IsCollectionValid() || ingredients.Active.IsCollectionValid())
+//            {
+//                var prodAddnlCodesComparerComparer = new CompareLogic(_productPropertiesAdditionalCodeConfig);
+//                var result1 = prodAddnlCodesComparerComparer.Compare(ingredients.Active, ingredients.Draft);
+//                var diffs1 = result1.Differences;
+//                CaptureDelta(delta, diffs1, "INGREDIENTS");
+//            }
+
+//            var excipients = GetExcipients(currentRecord);
+//            if (excipients.Draft.IsCollectionValid() || excipients.Active.IsCollectionValid())
+//            {
+//                var prodAddnlCodesComparerComparer = new CompareLogic(_productPropertiesAdditionalCodeConfig);
+//                var result1 = prodAddnlCodesComparerComparer.Compare(excipients.Active, excipients.Draft);
+//                var diffs1 = result1.Differences;
+//                CaptureDelta(delta, diffs1, "EXCIPIENTS");
+//            }
+
+//            var detail = (Active: currentRecord.Active.FormularyDetail.FirstOrDefault(), Draft: currentRecord.Draft.FormularyDetail.FirstOrDefault());// GetForumularyDetailPropsToCompare(dict[k]);
+//            if (detail.Draft != null || detail.Active != null)
+//            {
+//                var prodDetailComparerComparer = new CompareLogic(_productPropertiesDetailConfig);
+//                var result1 = prodDetailComparerComparer.Compare(detail.Active, detail.Draft);
+//                var diffs1 = result1.Differences;
+//                CaptureDelta(delta, diffs1, "DETAIL");
+//            }
+
+//            return delta;
+//        }
+
+//        private void CaptureDelta(DeltaDetail delta, List<Difference> diffs, string defaultDiffEntityName = "")
+//        {
+//            if (!diffs.IsCollectionValid()) return;
+
+//            foreach (var diff in diffs)
+//            {
+//                var propName = (diff.PropertyName ?? defaultDiffEntityName).ToUpper();
+                
+//                var propCategory = _propertyCategoryLkp.ContainsKey(propName) ? _propertyCategoryLkp[propName] : (_propertyCategoryLkp.ContainsKey(defaultDiffEntityName) ? _propertyCategoryLkp[defaultDiffEntityName] : String.Empty);
+                
+//                if (propCategory.IsEmpty()) return;
+
+//                AssignCategoryInfo(propName, propCategory, delta, diff);
+//            }
+//        }
+
+//        private void AssignCategoryInfo(string propName, string propCategory, DeltaDetail delta, Difference diff)
+//        {
+//            var derivedPropName = diff.PropertyName.IsEmpty() == true ? diff.ChildPropertyName : diff.PropertyName;
+
+//            var obj1Val = "";
+//            var obj2Val = "";
+//            try
+//            {
+//                obj1Val = JsonConvert.SerializeObject(diff.Object1);
+//                obj2Val = JsonConvert.SerializeObject(diff.Object2);
+//            }
+//            catch { }
+
+//            switch (propCategory.ToLower())
+//            {
+//                case "detail":
+//                    delta.HasProductDetailChanged = true;
+//                    delta.ProductDetailChangesAsList.Add($"{derivedPropName}:{obj1Val}|{obj2Val}");
+//                    delta.ProductDetailChanges = JsonConvert.SerializeObject(delta.ProductDetailChangesAsList);
+//                    if(string.Compare(propName, "isdmdinvalid", true) == 0)
+//                    {
+//                        delta.HasProductInvalidFlagChanged = true;
+//                        delta.ProductInvalidChanges = $"{derivedPropName}:{obj1Val}|{obj2Val}";
+//                    }
+//                    if (string.Compare(propName, "isdmddeleted", true) == 0)
+//                    {
+//                        delta.HasProductDeletedChanged = true;
+//                        delta.ProductDeletedChanges = $"{derivedPropName}:{obj1Val}|{obj2Val}";
+//                    }
+//                    break;
+//                case "posology":
+//                    delta.HasProductPosologyChanged = true;
+//                    delta.ProductPosologyChangesAsList.Add($"{derivedPropName}:{obj1Val}|{obj2Val}");
+//                    delta.ProductPosologyChanges = JsonConvert.SerializeObject(delta.ProductPosologyChangesAsList);
+//                    break;
+//                case "guidance":
+//                    delta.HasProductGuidanceChanged = true;
+//                    delta.ProductGuidanceChangesAsList.Add($"{derivedPropName}:{obj1Val}|{obj2Val}");
+//                    delta.ProductGuidanceChanges = JsonConvert.SerializeObject(delta.ProductGuidanceChangesAsList);
+//                    break;
+//                case "flags":
+//                    delta.HasProductFlagsChanged = true;
+//                    delta.ProductFlagsChangesAsList.Add($"{derivedPropName}:{obj1Val}|{obj2Val}");
+//                    delta.ProductFlagsChanges = JsonConvert.SerializeObject(delta.ProductFlagsChangesAsList);
+//                    break;
+//                default:
+//                    break;
+//            }
+//        }
+
+//        private ComparisonConfig GetFormularyDetailConfig() => new ComparisonConfig
+//        {
+//            MembersToInclude = new List<string>() { "BasisOfPreferredNameCd", "BasisOfPreferredNameDesc", "CurrentLicensingAuthorityCd", "CurrentLicensingAuthorityDesc", "SupplierCd", "SupplierName", "DoseFormCd", "DoseFormDesc", "FormCd", "FormDesc", "UnitDoseFormSize", "UnitDoseFormUnits", "UnitDoseFormUnitsDesc", "UnitDoseUnitOfMeasureCd", "UnitDoseUnitOfMeasureDesc", "ControlledDrugCategoryCd", "ControlledDrugCategoryDesc", "RestrictionsOnAvailabilityCd", "RestrictionsOnAvailabilityDesc", "PrescribingStatusCd", "PrescribingStatusDesc", "EmaAdditionalMonitoring", "Prescribable", "SugarFree", "GlutenFree", "PreservativeFree", "CfcFree", "UnlicensedMedicationCd", "ParallelImport" },
+//            MaxDifferences = 1000,
+//            IgnoreCollectionOrder = true,
+//            TreatStringEmptyAndNullTheSame = true,
+//            CustomComparers = new List<BaseTypeComparer> { new BooleanAndNullComparer(RootComparerFactory.GetRootComparer()) },
+//            CollectionMatchingSpec = _formularyPropertiesCodeSpec
+//        };
+
+//        private Dictionary<Type, IEnumerable<string>> GetFormularyPropsCodeSpec()
+//        {
+//            var formularyPropertiesCodeSpec = new Dictionary<Type, IEnumerable<string>>();
+//            formularyPropertiesCodeSpec.Add(typeof(FormularyAdditionalCode), new string[] { "AdditionalCodeDesc", "AdditionalCode" });
+//            formularyPropertiesCodeSpec.Add(typeof(FormularyIngredient), new string[] { "BasisOfPharmaceuticalStrengthCd", "BasisOfPharmaceuticalStrengthDesc", "IngredientCd", "IngredientName", "StrengthValueDenominator", "StrengthValueDenominatorUnitCd", "StrengthValueDenominatorUnitDesc", "StrengthValueNumerator", "StrengthValueNumeratorUnitCd", "StrengthValueNumeratorUnitDesc" });
+//            formularyPropertiesCodeSpec.Add(typeof(FormularyExcipient), new string[] { "IngredientCd", "IngredientName", "Strength", "StrengthUnitCd", "StrengthUnitDesc" });
+//            formularyPropertiesCodeSpec.Add(typeof(FormularyRouteDetail), new string[] { "RouteCd", "RouteDesc", "RouteFieldTypeCd" });
+//            formularyPropertiesCodeSpec.Add(typeof(FormularyLocalRouteDetail), new string[] { "RouteCd", "RouteDesc", "RouteFieldTypeCd" });
+
+//            //formularyPropertiesCodeSpec.Add(typeof(FormularyDetail), new string[] { "BasisOfPreferredNameCd", "BasisOfPreferredNameDesc", });
+//            formularyPropertiesCodeSpec.Add(typeof(FormularyLookupItemDTO), new string[] { "Cd", "Desc" });
+
+//            return formularyPropertiesCodeSpec;
+//        }
+
+//        private ComparisonConfig GetAssociatedEntitiesConfig()
+//        {
+//            return new ComparisonConfig
+//            {
+//                IgnoreCollectionOrder = true,
+//                TreatStringEmptyAndNullTheSame = true,
+//                CustomComparers =  new List<BaseTypeComparer> { new BooleanAndNullComparer(RootComparerFactory.GetRootComparer()) },
+//                CollectionMatchingSpec = _formularyPropertiesCodeSpec
+//            };
+//        }
+
+//        private ComparisonConfig GetHeaderConfig() => new ComparisonConfig
+//        {
+//            MembersToInclude = new List<string>() { "Name", "ParentCode", "Prevcode", "VtmId", "VmpId", "IsDmdInvalid", "IsDmdDeleted" },
+//            MaxDifferences = 1000,
+//            CustomComparers = new List<BaseTypeComparer> { new BooleanAndNullComparer(RootComparerFactory.GetRootComparer()) },
+//            TreatStringEmptyAndNullTheSame = true,
+//            //ClassTypesToInclude = new List<Type> {typeof(FormularyAdditionalCode), typeof(FormularyHeader) },
+//            //IgnoreCollectionOrder = true,
+//            //CollectionMatchingSpec = formularyPropertiesCodeSpec
+//        };
+
+//        private (List<string?>? hasBoth, Dictionary<string, FormularyHeader>? drafts, Dictionary<string, FormularyHeader>? actives) GetRecordsHavingActiveAndDraft(List<FormularyHeader>? ampsInDraftOrActive)
+//        {
+//            //select records that have both draft and active
+//            var drafts = ampsInDraftOrActive.Where(rec => rec.RecStatusCode == TerminologyConstants.RECORDSTATUS_DRAFT)?
+//                .Select(rec => new { Code = rec.Code, Data = rec })?
+//                .Distinct()?
+//                .ToDictionary(k => k.Code, v => v.Data);
+
+//            var actives = ampsInDraftOrActive.Where(rec => rec.RecStatusCode == TerminologyConstants.RECORDSTATUS_ACTIVE)?
+//                .Select(rec => new { Code = rec.Code, Data = rec })?
+//                .Distinct(rec => rec.Code)?
+//                .ToDictionary(k => k.Code, v => v.Data);
+
+//            if (!drafts.IsCollectionValid() || !actives.IsCollectionValid()) return (null, drafts, actives);
+
+//            return (hasBoth: drafts.Keys.Intersect(actives.Keys)?.ToList(), drafts: drafts, actives: actives);
+//        }
+
+//        private (dynamic Draft, dynamic Active) GetForumularyDetailPropsToCompare((FormularyHeader Active, FormularyHeader Draft) value)
+//        {
+//            var activeAddnlCodes = value.Active.FormularyDetail?.Select(rec => new { LicensedIndications = FillCodeDescList(rec.LicensedUse), UnlicensedIndications = FillCodeDescList(rec.UnlicensedUse), Detail = rec }).FirstOrDefault();
+
+//            var draftAddnlCodes = value.Draft.FormularyDetail?.Select(rec => new { LicensedIndications = FillCodeDescList(rec.LicensedUse), UnlicensedIndications = FillCodeDescList(rec.UnlicensedUse), Detail = rec }).FirstOrDefault();
+
+//            return (Draft: draftAddnlCodes, Active: activeAddnlCodes);
+//        }
+
+//        private (List<FormularyAdditionalCode>? Draft, List<FormularyAdditionalCode>? Active) GetAddnlCodes((FormularyHeader Active, FormularyHeader Draft) value)
+//        {
+//            var activeAddnlCodes = value.Active.FormularyAdditionalCode?.Select(rec => new FormularyAdditionalCode { AdditionalCode = rec.AdditionalCode, AdditionalCodeDesc = rec.AdditionalCodeDesc, AdditionalCodeSystem= rec.AdditionalCodeSystem }).OrderBy(rec => rec.AdditionalCodeSystem).OrderBy(rec => rec.AdditionalCodeDesc).ToList();
+
+//            var draftAddnlCodes = value.Draft.FormularyAdditionalCode?.Select(rec => new FormularyAdditionalCode { AdditionalCode = rec.AdditionalCode, AdditionalCodeDesc = rec.AdditionalCodeDesc, AdditionalCodeSystem = rec.AdditionalCodeSystem }).OrderBy(rec => rec.AdditionalCodeSystem).OrderBy(rec => rec.AdditionalCodeDesc).ToList();
+
+//            return (Draft: draftAddnlCodes, Active: activeAddnlCodes);
+//        }
+
+//        private (List<FormularyLocalRouteDetail>? Draft, List<FormularyLocalRouteDetail>? Active) GetLocalRoutes((FormularyHeader Active, FormularyHeader Draft) value)
+//        {
+//            var activeRecs = value.Active.FormularyLocalRouteDetail?.Select(rec => new FormularyLocalRouteDetail { RouteCd = rec.RouteCd, RouteDesc = rec.RouteDesc, RouteFieldTypeCd = rec.RouteFieldTypeCd }).OrderBy(rec => rec.RouteFieldTypeCd ?? "").OrderBy(rec => rec.RouteCd).ToList();
+
+//            var draftRecs = value.Draft.FormularyLocalRouteDetail?.Select(rec => new FormularyLocalRouteDetail { RouteCd = rec.RouteCd, RouteDesc = rec.RouteDesc, RouteFieldTypeCd = rec.RouteFieldTypeCd }).OrderBy(rec => rec.RouteFieldTypeCd ?? "").OrderBy(rec => rec.RouteCd).ToList();
+
+//            return (Draft: draftRecs, Active: activeRecs);
+//        }
+
+//        private (List<FormularyRouteDetail>? Draft, List<FormularyRouteDetail>? Active) GetRoutes((FormularyHeader Active, FormularyHeader Draft) value)
+//        {
+//            var activeRecs = value.Active.FormularyRouteDetail?.Select(rec => new FormularyRouteDetail { RouteCd = rec.RouteCd, RouteDesc = rec.RouteDesc, RouteFieldTypeCd = rec.RouteFieldTypeCd }).OrderBy(rec => rec.RouteFieldTypeCd ?? "").OrderBy(rec => rec.RouteCd).ToList();
+
+//            var draftRecs = value.Draft.FormularyRouteDetail?.Select(rec => new FormularyRouteDetail { RouteCd = rec.RouteCd, RouteDesc = rec.RouteDesc, RouteFieldTypeCd = rec.RouteFieldTypeCd }).OrderBy(rec => rec.RouteFieldTypeCd ?? "").OrderBy(rec => rec.RouteCd).ToList();
+
+//            return (Draft: draftRecs, Active: activeRecs);
+//        }
+
+//        private (List<FormularyIngredient>? Draft, List<FormularyIngredient>? Active) GetIngredients((FormularyHeader Active, FormularyHeader Draft) value)
+//        {
+//            var activeRecs = value.Active.FormularyIngredient?.Select(rec => new FormularyIngredient { IngredientCd = rec.IngredientCd, IngredientName = rec.IngredientName, BasisOfPharmaceuticalStrengthCd = rec.BasisOfPharmaceuticalStrengthCd, BasisOfPharmaceuticalStrengthDesc = rec.BasisOfPharmaceuticalStrengthDesc, StrengthValueDenominator = rec.StrengthValueDenominator, StrengthValueDenominatorUnitCd = rec.StrengthValueDenominatorUnitCd, StrengthValueDenominatorUnitDesc = rec.StrengthValueDenominatorUnitDesc, StrengthValueNumerator = rec.StrengthValueNumerator, StrengthValueNumeratorUnitCd = rec.StrengthValueNumeratorUnitCd, StrengthValueNumeratorUnitDesc = rec.StrengthValueNumeratorUnitDesc }).OrderBy(rec => rec.IngredientCd ?? "").ToList();
+
+//            var draftRecs = value.Draft.FormularyIngredient?.Select(rec => new FormularyIngredient { IngredientCd = rec.IngredientCd, IngredientName = rec.IngredientName, BasisOfPharmaceuticalStrengthCd = rec.BasisOfPharmaceuticalStrengthCd, BasisOfPharmaceuticalStrengthDesc = rec.BasisOfPharmaceuticalStrengthDesc, StrengthValueDenominator = rec.StrengthValueDenominator, StrengthValueDenominatorUnitCd = rec.StrengthValueDenominatorUnitCd, StrengthValueDenominatorUnitDesc = rec.StrengthValueDenominatorUnitDesc, StrengthValueNumerator = rec.StrengthValueNumerator, StrengthValueNumeratorUnitCd = rec.StrengthValueNumeratorUnitCd, StrengthValueNumeratorUnitDesc = rec.StrengthValueNumeratorUnitDesc }).OrderBy(rec => rec.IngredientCd ?? "").ToList();
+
+//            return (Draft: draftRecs, Active: activeRecs);
+//        }
+
+//        private (List<FormularyExcipient>? Draft, List<FormularyExcipient>? Active) GetExcipients((FormularyHeader Active, FormularyHeader Draft) value)
+//        {
+//            var activeRecs = value.Active.FormularyExcipient?.Select(rec => new FormularyExcipient { IngredientCd = rec.IngredientCd, IngredientName = rec.IngredientName, Strength = rec.Strength, StrengthUnitCd = rec.StrengthUnitCd, StrengthUnitDesc = rec.StrengthUnitDesc }).OrderBy(rec => rec.IngredientCd ?? "").ToList();
+
+//            var draftRecs = value.Draft.FormularyExcipient?.Select(rec => new FormularyExcipient { IngredientCd = rec.IngredientCd, IngredientName = rec.IngredientName, Strength = rec.Strength, StrengthUnitCd = rec.StrengthUnitCd, StrengthUnitDesc = rec.StrengthUnitDesc }).OrderBy(rec => rec.IngredientCd ?? "").ToList();
+
+//            return (Draft: draftRecs, Active: activeRecs);
+//        }
+
+//        private List<FormularyLookupItemDTO> FillCodeDescList(string dataAsString)
+//        {
+//            if (dataAsString.IsEmpty()) return null;
+
+//            var dataAsList = JsonConvert.DeserializeObject<List<FormularyLookupItemDTO>>(dataAsString);//id and text
+
+//            if (dataAsList == null) return null;
+
+//            return dataAsList.OrderBy(rec=> rec.Cd).ToList();
+//        }
+//    }
+
+//    /// <summary>
+//    /// This Comparer treats the 'false' and 'null' as 'false'
+//    /// FALSE : NULL - No Change
+//    /// NULL : FALSE - No Change
+//    /// FALSE : FALSE - No Change
+//    /// TRUE : TRUE - No Change
+//    /// TRUE : NULL - Has Change
+//    /// NULL : TRUE - Has Change
+//    /// </summary>
+//    public class BooleanAndNullComparer : BaseTypeComparer
+//    {
+//        public BooleanAndNullComparer(RootComparer rootComparer) : base(rootComparer)
+//        {
+//        }
+
+//        public override bool IsTypeMatch(Type type1, Type type2)
+//        {
+//            return (type1 == null && type2 == typeof(Boolean)) || (type1 == typeof(Boolean) && type2 == null);
+//        }
+
+//        public override void CompareType(CompareParms parms)
+//        {
+//            if(((parms.Object2 != null && (Boolean)parms.Object2 == true) && parms.Object1 == null) || ((parms.Object1 != null && (Boolean)parms.Object1 == true) && parms.Object2 == null))
+//            {
+//                AddDifference(parms);
+//            }
+//        }
+//    }
+//}
+
+

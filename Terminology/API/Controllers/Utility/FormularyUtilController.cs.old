@@ -1,0 +1,726 @@
+﻿
+//using AutoMapper;
+//using Interneuron.Common.Extensions;
+//using Interneuron.FDBAPI.Client;
+//using Interneuron.FDBAPI.Client.DataModels;
+//using Interneuron.Terminology.API.AppCode.Commands;
+//using Interneuron.Terminology.API.AppCode.Core.BackgroundProcess;
+//using Interneuron.Terminology.API.AppCode.DTOs;
+//using Interneuron.Terminology.Infrastructure;
+//using Interneuron.Terminology.Infrastructure.Domain;
+//using Interneuron.Terminology.Model.DomainModels;
+//using Microsoft.AspNetCore.Authorization;
+//using Microsoft.AspNetCore.Http;
+//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.Extensions.Configuration;
+//using Newtonsoft.Json;
+//using RestSharp;
+//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Threading.Tasks;
+
+//namespace Interneuron.Terminology.API.Controllers.Utility
+//{
+//    [Authorize]
+//    [Route("api/[controller]")]
+//    [ApiController]
+//    public partial class FormularyUtilController : ControllerBase
+//    {
+//        private readonly IConfiguration _configuration;
+//        private readonly IFormularyCommands _formularyCommand;
+//        private readonly APIRequestContext _requestContext;
+//        private readonly IServiceProvider _provider;
+//        private readonly IMapper _mapper;
+
+//        public FormularyUtilController(IConfiguration configuration, IFormularyCommands formularyCommand, APIRequestContext requestContext, IServiceProvider provider, IMapper mapper)
+//        {
+//            _configuration = configuration;
+//            _formularyCommand = formularyCommand;
+//            _requestContext = requestContext;
+//            _provider = provider;
+//            _mapper = mapper;
+//        }
+
+//        [HttpGet, Route("seedusagestats")]
+//        [ProducesResponseType(StatusCodes.Status200OK)]
+//        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+//        public async Task<ActionResult> SeedUsageStatsFromEPMA()
+//        {
+//            var accessToken = await GetAccessToken();
+//            if (accessToken == null) return StatusCode(500, "Unable to get access token. Please check for the scopes grant_type=client_credentials,client_id=client,client_secret=secret,scope=terminologyapi.write dynamicapi.read terminologyapi.read carerecordapi.read");
+
+//            var dynamicServiceAPIUrl = $"{_configuration["TerminologyConfig:DynamicAPIEndpoint"]}/GetBaseViewList/epma_prescriptionsusagestat";
+
+//            using var client = new RestClient(dynamicServiceAPIUrl);
+
+//            var request = new RestRequest() { Method = Method.Get, Timeout = -1 };
+//            request.AddHeader("Authorization", $"Bearer {accessToken}");
+
+//            request.AddHeader("Content-Type", "application/json");
+//            request.AddHeader("Accept-Language", "application/json");
+
+//            var response = await client.ExecuteAsync<List<FormularyUsageStatDTO>>(request);
+
+//            if (response == null || (response.StatusCode != System.Net.HttpStatusCode.Accepted && response.StatusCode != System.Net.HttpStatusCode.OK) || response.Content.IsEmpty())
+//            {
+//                return NoContent();
+//            }
+//            var data = new List<FormularyUsageStatDTO>();
+//            try
+//            {
+//                var dataTemp = JsonConvert.DeserializeObject<dynamic>(response.Content);
+//                data = JsonConvert.DeserializeObject<List<FormularyUsageStatDTO>>(dataTemp);
+//            }
+//            catch { }
+
+//            if (!data.IsCollectionValid()) return NoContent();
+
+//            var result = await _formularyCommand.SeedFormularyUsageStatForEPMA(data);
+
+//            if (result == null || result.StatusCode == TerminologyConstants.STATUS_BAD_REQUEST)
+//                return BadRequest(result?.ErrorMessages);
+
+//            return Ok();
+//        }
+
+//        private async Task<string> GetAccessToken()
+//        {
+//            //Invoke cache api endpoint
+//            var accessTokenUrl = _configuration.GetSection("TerminologyConfig")["AccessTokenUrl"];
+//            var dynamicAPICreds = _configuration.GetSection("TerminologyConfig")["DynamicAPICreds"].Split('|');
+//            var headerParams = new Dictionary<string, string>()
+//            {
+//                //["grant_type"] = "client_credentials",
+//                //["client_id"] = "client",
+//                //["client_secret"] = "secret",
+//                //["scope"] = "terminologyapi.write dynamicapi.read terminologyapi.read carerecordapi.read"
+//            };
+
+//            foreach (var item in dynamicAPICreds)
+//            {
+//                var kv = item.Split(':');
+//                headerParams.Add(kv[0], kv[1]);
+//            }
+
+//            using (var client = new RestClient(accessTokenUrl))
+//            {
+//                var request = new RestRequest() { Method = Method.Post, Timeout = -1 };
+//                request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+
+//                foreach (var param in headerParams)
+//                {
+//                    request.AddParameter(param.Key, param.Value);
+//                }
+
+//                var response = await client.ExecuteAsync<AccessTokenDetail>(request);
+
+//                if (response == null || response.Data == null || string.IsNullOrEmpty(response.Data.Access_Token))
+//                {
+//                    return null;
+//                }
+//                return response.Data.Access_Token;
+//            }
+
+//        }
+
+//        [HttpGet, Route("UpdateExistingFDBCodesFromFDB")]
+//        [ProducesResponseType(StatusCodes.Status200OK)]
+//        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+//        public async Task<ActionResult> UpdateExistingFDBCodesFromFDB()
+//        {
+//            //This is idempotent and can be re-executed
+//            //Earlier, as a part of the import process, only the last FDB code used to be imported and used.
+//            //Now, all the FDB codes will be fetched for the AMP from FDB and this api endpoint does it.
+
+//            return await Task.Run(() =>
+//            {
+//                var updateExistingFDBCodesFromFDBHandler = this._provider.GetService(typeof(UpdateExistingFDBCodesFromFDBBackgroundService)) as UpdateExistingFDBCodesFromFDBBackgroundService;
+//                var messageId = Guid.NewGuid().ToString();
+
+//                updateExistingFDBCodesFromFDBHandler.UpdateExistingFDBCodesFromFDB(messageId);
+//                return Accepted($"This is a long running process. Please check the log to know the status using the messageId : {messageId}.");
+//            });
+//        }
+
+//        /*
+//        [HttpGet, Route("UpdateExistingFDBCodesFromFDB")]
+//        [ProducesResponseType(StatusCodes.Status200OK)]
+//        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+//        public async Task<ActionResult> UpdateExistingFDBCodesFromFDB()
+//        {
+//            //This is idempotent and can be reexecuted
+//            //Earlier, as a part of the import process, only the last FDB code used to be imported and used.
+//            //Now, all the FDB codes will be fetched for the AMP from FDB and this api endpoint does it.
+
+//            var repo = this._provider.GetService(typeof(IRepository<FormularyHeader>)) as IRepository<FormularyHeader>;
+//            var additionalCodeRepo = this._provider.GetService(typeof(IRepository<FormularyAdditionalCode>)) as IRepository<FormularyAdditionalCode>;
+
+//            var latestAMPFormulariesFromHeader = repo.ItemsAsReadOnly.Where(rec => rec.ProductType == "AMP" && rec.IsLatest == true)?.ToList();
+
+//            if (!latestAMPFormulariesFromHeader.IsCollectionValid()) return NoContent();
+
+
+//            var baseFDBUrl = _configuration.GetSection("FDB").GetValue<string>("BaseURL");
+
+//            var token = _requestContext.AuthToken;
+
+//            var fdbClient = new FDBAPIClient(baseFDBUrl);
+
+//            var batchsize = 1500;//not more than 2100- due to sql restrictions
+
+//            var batchedRequests = new List<List<FDBDataRequest>>();
+
+//            var codesAndProductTypes = latestAMPFormulariesFromHeader.Select(res => new FDBDataRequest()
+//            {
+//                ProductType = "AMP",
+//                ProductCode = res.Code
+//            }).ToList();
+
+//            for (var reqIndex = 0; reqIndex < codesAndProductTypes.Count; reqIndex += batchsize)
+//            {
+//                var batches = codesAndProductTypes.Skip(reqIndex).Take(batchsize).ToList();
+//                batchedRequests.Add(batches.ToList());
+//            }
+
+//            foreach (var item in batchedRequests)
+//            {
+//                var theraupeuticClasses = await fdbClient.GetAllTherapeuticClassificationGroupsByCodes(item, token);
+
+//                if (theraupeuticClasses == null || !theraupeuticClasses.Data.IsCollectionValid()) continue;
+
+//                UpdateFDBData(theraupeuticClasses, latestAMPFormulariesFromHeader);
+
+//                additionalCodeRepo.SaveChanges();
+//            }
+
+//            return Ok();
+//        }
+
+
+//        private void UpdateFDBData(FDBAPIResourceModel<Dictionary<string, List<(string, string)>>> theraupeuticClasses, List<FormularyHeader> latestAMPFormulariesFromHeader)
+//        {
+//            if (theraupeuticClasses == null || !theraupeuticClasses.Data.IsCollectionValid()) return;
+
+//            var additionalCodeRepo = this._provider.GetService(typeof(IRepository<FormularyAdditionalCode>)) as IRepository<FormularyAdditionalCode>;
+
+//            var codes = theraupeuticClasses.Data.Keys;
+
+//            var headerForCodes = latestAMPFormulariesFromHeader.Where(rec => codes.Contains(rec.Code)).ToList();
+
+//            var fvIdsForCodesInFDB = headerForCodes.Where(rec => codes.Contains(rec.Code))?
+//                .Select(rec=> rec.FormularyVersionId)?.ToList();
+
+//            //Check if these fvids has FDB Codes
+//            var fdbRecordsForCodes = additionalCodeRepo.Items.Where(rec => rec.AdditionalCodeSystem == "FDB" && fvIdsForCodesInFDB.Contains(rec.FormularyVersionId))
+//               .ToList();
+
+//            var fvIdExistingRecsLkp = new Dictionary<string, List<FormularyAdditionalCode>>();
+//            if (fdbRecordsForCodes.IsCollectionValid())
+//            {
+//                foreach (var fdbRecordInDbForCodes in fdbRecordsForCodes)
+//                {
+//                    if (fvIdExistingRecsLkp.ContainsKey(fdbRecordInDbForCodes.FormularyVersionId))
+//                        fvIdExistingRecsLkp[fdbRecordInDbForCodes.FormularyVersionId].Add(fdbRecordInDbForCodes);
+//                    else
+//                        fvIdExistingRecsLkp[fdbRecordInDbForCodes.FormularyVersionId] = new List<FormularyAdditionalCode> { fdbRecordInDbForCodes };
+//                }
+//            }
+
+//            foreach (var header in headerForCodes)
+//            {
+//                var fdbData = theraupeuticClasses.Data[header.Code];
+
+//                if (!fdbData.IsCollectionValid()) continue;
+
+//                //Check if this code has existing FDB in formulary
+//                var existingFDBInDB = (fvIdExistingRecsLkp.IsCollectionValid() && fvIdExistingRecsLkp.ContainsKey(header.FormularyVersionId)) ? fvIdExistingRecsLkp[header.FormularyVersionId] : null;
+//                // fdbRecordsForCodes?.Where(rec => rec.FormularyVersionId == header.FormularyVersionId)?.ToList();
+
+//                if (existingFDBInDB.IsCollectionValid())
+//                {
+//                    foreach (var fdbItem in fdbData)
+//                    {
+//                        var additionalCodeInFDB = existingFDBInDB.Where(rec => fdbItem.Item1 == rec.AdditionalCode)?.ToList();
+
+//                        if (additionalCodeInFDB.IsCollectionValid())
+//                        {
+//                            foreach (var existingRecInDb in additionalCodeInFDB)
+//                            {
+//                                existingRecInDb.AdditionalCodeDesc = fdbItem.Item2;
+//                                additionalCodeRepo.Update(existingRecInDb);
+//                            }
+//                        }
+//                        else
+//                        {
+//                            var newAddnlCode = new FormularyAdditionalCode
+//                            {
+//                                CodeType = TerminologyConstants.CODE_SYSTEM_CLASSIFICATION_TYPE,
+//                                AdditionalCode = fdbItem.Item1,
+//                                AdditionalCodeDesc = fdbItem.Item2,
+//                                AdditionalCodeSystem = TerminologyConstants.FDB_DATA_SRC,
+//                                Source = TerminologyConstants.FDB_DATA_SRC,
+//                                FormularyVersionId = header.FormularyVersionId,
+//                            };
+//                            additionalCodeRepo.Add(newAddnlCode);
+//                        }
+//                    }
+//                }
+//                else
+//                {
+//                    foreach (var fdbDataItem in fdbData)
+//                    {
+//                        var newAddnlCode = new FormularyAdditionalCode
+//                        {
+//                            CodeType = TerminologyConstants.CODE_SYSTEM_CLASSIFICATION_TYPE,
+//                            AdditionalCode = fdbDataItem.Item1,
+//                            AdditionalCodeDesc = fdbDataItem.Item2,
+//                            AdditionalCodeSystem = TerminologyConstants.FDB_DATA_SRC,
+//                            Source = TerminologyConstants.FDB_DATA_SRC,
+//                            FormularyVersionId = header.FormularyVersionId,
+//                        };
+//                        additionalCodeRepo.Add(newAddnlCode);
+//                    }
+//                }
+//            }
+//        }
+//        */
+
+//        /*
+//         * Old - Erroneous - Kept for references
+//        [HttpGet, Route("UpdateExistingFDBCodesFromFDB")]
+//        [ProducesResponseType(StatusCodes.Status200OK)]
+//        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+//        public async Task<ActionResult> UpdateExistingFDBCodesFromFDB()
+//        {
+//            //Earlier, as a part of the import process, only the last FDB code used to be imported and used.
+//            //Now, all the FDB codes will be fetched for the AMP from FDB and this api endpoint does it.
+
+//            var repo = this._provider.GetService(typeof(IRepository<FormularyHeader>)) as IRepository<FormularyHeader>;
+//            var additionalCodeRepo = this._provider.GetService(typeof(IRepository<FormularyAdditionalCode>)) as IRepository<FormularyAdditionalCode>;
+
+//            var latestAMPFormulariesFromHeader = repo.ItemsAsReadOnly.Where(rec => rec.ProductType == "AMP" && rec.IsLatest == true).ToList();
+
+//            var formularyVerIds = latestAMPFormulariesFromHeader.Select(rec => rec.FormularyVersionId).ToList();
+
+//            var codeFVIdsLkp = new Dictionary<string, List<string>>();
+
+//            foreach (var item in latestAMPFormulariesFromHeader)
+//            {
+//                if (!codeFVIdsLkp.ContainsKey(item.Code))
+//                {
+//                    codeFVIdsLkp[item.Code] = new List<string>() { item.FormularyVersionId };
+//                }
+//                else
+//                {
+//                    codeFVIdsLkp[item.Code].Add(item.FormularyVersionId);
+//                }
+//            }
+
+//            var ampCodes = latestAMPFormulariesFromHeader.Select(rec => rec.Code).Distinct().ToList();
+
+//            var formularyVersionIdCodeLkp = latestAMPFormulariesFromHeader.Select(rec => new { FVId = rec.FormularyVersionId, Code = rec.Code })?.Distinct(rec => rec.FVId).ToDictionary(k => k.FVId, v => v.Code);
+
+//            var latestAMPsFDBAddnlCodes = additionalCodeRepo.ItemsAsReadOnly
+//               .Where(rec => rec.AdditionalCodeSystem == "FDB" && formularyVerIds.Contains(rec.FormularyVersionId))
+//               .ToList();
+
+//            //var formularyVersionIdAddnlCodeLkp = latestAMPsFDBAddnlCodes.Select(rec => new { FVId = rec.FormularyVersionId, rec })?
+//            //    .Distinct(rec => rec.FVId)
+//            //    .ToDictionary(k => k.FVId, v => v.rec);
+//            var formularyVersionIdAddnlCodeLkp = new Dictionary<string, List<FormularyAdditionalCode>>();
+
+//            latestAMPsFDBAddnlCodes.ForEach(rec =>
+//            {
+//                if (formularyVersionIdAddnlCodeLkp.ContainsKey(rec.FormularyVersionId))
+//                {
+//                    formularyVersionIdAddnlCodeLkp[rec.FormularyVersionId].Add(rec);
+//                }
+//                else
+//                {
+//                    formularyVersionIdAddnlCodeLkp[rec.FormularyVersionId] = new List<FormularyAdditionalCode> { rec };
+//                }
+//            });
+
+
+//            var codeAddnlCodeLkpInAddnlCodeTbl = new Dictionary<string, List<FormularyAdditionalCode>>();
+
+//            foreach (var fvId in formularyVersionIdCodeLkp.Keys)
+//            {
+//                var code = formularyVersionIdCodeLkp[fvId];
+//                if (formularyVersionIdAddnlCodeLkp.ContainsKey(fvId))
+//                {
+//                    if (codeAddnlCodeLkpInAddnlCodeTbl.ContainsKey(code))
+//                        codeAddnlCodeLkpInAddnlCodeTbl[code].AddRange(formularyVersionIdAddnlCodeLkp[fvId]);
+//                    else
+//                    {
+//                        codeAddnlCodeLkpInAddnlCodeTbl[code] = new List<FormularyAdditionalCode>();
+//                        codeAddnlCodeLkpInAddnlCodeTbl[code].AddRange(formularyVersionIdAddnlCodeLkp[fvId]);
+//                    }
+//                }
+//            }
+
+//            //25023404
+//            var baseFDBUrl = _configuration.GetSection("FDB").GetValue<string>("BaseURL");
+
+//            var token = _requestContext.AuthToken;
+
+//            var fdbClient = new FDBAPIClient(baseFDBUrl);
+
+//            var batchsize = 1500;//not more than 2100- due to sql restrictions
+
+//            var batchedRequests = new List<List<FDBDataRequest>>();
+
+//            var codesAndProductTypes = ampCodes.Select(res => new FDBDataRequest()
+//            {
+//                ProductType = "AMP",
+//                ProductCode = res
+//            }).ToList();
+
+//            for (var reqIndex = 0; reqIndex < codesAndProductTypes.Count; reqIndex += batchsize)
+//            {
+//                var batches = codesAndProductTypes.Skip(reqIndex).Take(batchsize).ToList();
+//                batchedRequests.Add(batches.ToList());
+//            }
+
+//            foreach (var item in batchedRequests)
+//            {
+//                var theraupeuticClasses = await fdbClient.GetAllTherapeuticClassificationGroupsByCodes(item, token);
+
+//                if (theraupeuticClasses == null || !theraupeuticClasses.Data.IsCollectionValid()) continue;
+
+//                UpdateFDBData(theraupeuticClasses, codeAddnlCodeLkpInAddnlCodeTbl, additionalCodeRepo, codeFVIdsLkp);
+
+//                additionalCodeRepo.SaveChanges();
+//            }
+
+//            return Ok();
+//        }
+
+//        private void UpdateFDBData(FDBAPIResourceModel<Dictionary<string, List<(string, string)>>> theraupeuticClasses, Dictionary<string, List<FormularyAdditionalCode>> codeAddnlCodeLkpInAddnlCodeTbl, IRepository<FormularyAdditionalCode> additionalCodeRepo, Dictionary<string, List<string>> codeFVIdsLkp)
+//        {
+//            var theraupaticCodes = theraupeuticClasses.Data.Keys;
+
+//            var existingRecsInAdditonalCodesRowIds = codeAddnlCodeLkpInAddnlCodeTbl.Where(rec => theraupaticCodes.Contains(rec.Key))?.SelectMany(rec => rec.Value)?.Select(rec => rec.RowId)?.ToList();
+
+//            var existingRecsFromDb = additionalCodeRepo.Items.Where(rec => existingRecsInAdditonalCodesRowIds.Contains(rec.RowId)).ToList();
+
+//            foreach (var data in theraupeuticClasses.Data)
+//            {
+//                if (!data.Value.IsCollectionValid()) continue;
+
+//                //if the formulary versionid exists in the db already for any one fdb
+//                if (codeAddnlCodeLkpInAddnlCodeTbl.ContainsKey(data.Key))
+//                {
+//                    var existingRecsInAdditonalCodes = codeAddnlCodeLkpInAddnlCodeTbl[data.Key];
+
+//                    var rowIdsForExisttingRecs = existingRecsInAdditonalCodes.Select(rec => rec.RowId).ToList();
+
+//                    //var existingRecsInAdditonalCodesRowIds = existingRecsInAdditonalCodes.Select(rec => rec.RowId).ToList();
+
+//                    //var existingRecs = additionalCodeRepo.Items.Where(rec => existingRecsInAdditonalCodesRowIds.Contains(rec.RowId));
+
+//                    var existingRecs = existingRecsFromDb.Where(rec => rowIdsForExisttingRecs.Contains(rec.RowId));
+
+//                    foreach (var rec in data.Value)
+//                    {
+//                        foreach (var existing in existingRecs)
+//                        {
+//                            //update
+//                            if (existing.AdditionalCode != null && rec.Item1 != null && string.Compare(existing.AdditionalCode.Trim(), rec.Item1.Trim(), true) == 0)
+//                            {
+//                                existing.AdditionalCodeDesc = rec.Item2;
+//                                additionalCodeRepo.Update(existing);
+//                            }
+//                            else
+//                            {
+//                                var newAddnlCode = new FormularyAdditionalCode
+//                                {
+//                                    CodeType = TerminologyConstants.CODE_SYSTEM_CLASSIFICATION_TYPE,
+//                                    AdditionalCode = rec.Item1,
+//                                    AdditionalCodeDesc = rec.Item2,
+//                                    AdditionalCodeSystem = TerminologyConstants.FDB_DATA_SRC,
+//                                    Source = TerminologyConstants.FDB_DATA_SRC,
+//                                    FormularyVersionId = existing.FormularyVersionId,
+//                                };
+//                                additionalCodeRepo.Add(newAddnlCode);
+//                            }
+//                        }
+//                    }
+//                }
+//                else
+//                {
+//                    //for this 'Code' no fdb exists already
+//                    foreach (var rec in data.Value)
+//                    {
+//                        var fvIdsForCode = codeFVIdsLkp[data.Key];
+
+//                        if (!fvIdsForCode.IsCollectionValid()) continue;
+
+//                        foreach (var fvId in fvIdsForCode)
+//                        {
+//                            var newAddnlCode = new FormularyAdditionalCode
+//                            {
+//                                CodeType = TerminologyConstants.CODE_SYSTEM_CLASSIFICATION_TYPE,
+//                                AdditionalCode = rec.Item1,
+//                                AdditionalCodeDesc = rec.Item2,
+//                                AdditionalCodeSystem = TerminologyConstants.FDB_DATA_SRC,
+//                                Source = TerminologyConstants.FDB_DATA_SRC,
+//                                FormularyVersionId = fvId,
+//                            };
+//                            additionalCodeRepo.Add(newAddnlCode);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        */
+
+//        [HttpGet, Route("UpdateExistingBNFCodesFromVMPTOAMPs")]
+//        [ProducesResponseType(StatusCodes.Status200OK)]
+//        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+//        public async Task<ActionResult> UpdateExistingBNFCodesFromVMPTOAMPs()
+//        {
+//            return await Task.Run<ActionResult>(() =>
+//            {
+//                //From VMP, get map of Code and its BNFCode Additional codes
+//                //From AMP, get parentcode and the FormularyVersionIds 
+//                //If the AMP has missing BNF the the BNF code in the VMP (only first 7 chars) will be copied to the child AMP
+
+//                var repo = this._provider.GetService(typeof(IRepository<FormularyHeader>)) as IRepository<FormularyHeader>;
+//                var additionalCodeRepo = this._provider.GetService(typeof(IRepository<FormularyAdditionalCode>)) as IRepository<FormularyAdditionalCode>;
+//                var formularyRepo = this._provider.GetService(typeof(IFormularyRepository<FormularyHeader>)) as IFormularyRepository<FormularyHeader>;
+
+//                //From VMP, get map of Code and its BNFCode Additional codes
+//                var vmpCodeWithItsBNFsLKP = GetVMPCodeWithItsAdditionalBNFsLkp(repo, additionalCodeRepo);
+
+//                if (!vmpCodeWithItsBNFsLKP.IsCollectionValid()) return NoContent();
+
+//                //From AMP, get parentcode and the FormularyVersionIds 
+//                var ampParentCodeWithItsFVIdsLkp = GetAMPCodeWithItsFVIdsAndBNFsLkp(repo, additionalCodeRepo);
+
+//                if (!ampParentCodeWithItsFVIdsLkp.IsCollectionValid()) return NoContent();
+
+//                foreach (var parentVMPCode in vmpCodeWithItsBNFsLKP.Keys)
+//                {
+//                    if (!ampParentCodeWithItsFVIdsLkp.ContainsKey(parentVMPCode)) continue;
+
+//                    //Need to add the BNF for all these amps from the VMP
+//                    var ampFVIds = ampParentCodeWithItsFVIdsLkp[parentVMPCode];
+
+//                    if (!ampFVIds.IsCollectionValid()) continue;
+
+//                    foreach (var ampfvIdWithBNFs in ampFVIds)
+//                    {
+//                        //If this AMP FVId already has any BNF code then no need to copy from VMP
+//                        if (ampfvIdWithBNFs.ampBNFs.IsCollectionValid()) continue;
+
+//                        //for each of bnfs in VMP, add to the amp
+//                        var vmpsBNFs = vmpCodeWithItsBNFsLKP[parentVMPCode];
+
+//                        if (!vmpsBNFs.IsCollectionValid()) continue;
+
+//                        foreach (var bnfInVMP in vmpsBNFs)
+//                        {
+//                            if (bnfInVMP.AdditionalCode.IsEmpty()) continue;
+
+//                            var bnfCode = bnfInVMP.AdditionalCode.Substring(0, 7);
+
+//                            /*Not just this bnf code in vmp, any bnf code in AMP then ignore the copy - hence commenting
+//                            //check if this BNF already exists in AMP if then ignore that
+//                            if (ampfvIdWithBNFs.ampBNFs.IsCollectionValid() && ampfvIdWithBNFs.ampBNFs.Contains(bnfCode))
+//                                continue;
+//                            */
+
+//                            var newAdditionalGen = new FormularyAdditionalCode();
+//                            var newAdditional = _mapper.Map(bnfInVMP, newAdditionalGen);//clone it
+//                            newAdditional.RowId = null;//to be auto generated
+//                            newAdditional.FormularyVersionId = ampfvIdWithBNFs.fvId;
+//                            newAdditional.AdditionalCode = newAdditionalGen.AdditionalCode.Substring(0, 7);
+
+//                            additionalCodeRepo.Add(newAdditional);
+//                        }
+//                    }
+//                }
+//                additionalCodeRepo.SaveChanges();
+//                /*
+
+//                var latestVMPFormulariesFromHeader = repo.ItemsAsReadOnly.Where(rec => rec.ProductType == "VMP" && rec.IsLatest == true).ToList();
+//                var formularyVerIds = latestVMPFormulariesFromHeader?.Select(rec => rec.FormularyVersionId).ToList();
+
+//                if (!formularyVerIds.IsCollectionValid()) return NoContent();
+
+//                var codesOfVMPFormulariesFromHeader = latestVMPFormulariesFromHeader?.Select(rec => rec.Code)?.Distinct().ToList();
+
+//                var latestAMPFormulariesFromHeader = repo.ItemsAsReadOnly
+//                    ?.Where(rec => rec.ProductType == "AMP" && rec.IsLatest == true && codesOfVMPFormulariesFromHeader.Contains(rec.ParentCode))
+//                    ?.ToList();
+
+//                //var latestVMPsBNFAddnlCodes = additionalCodeRepo.ItemsAsReadOnly
+//                //  .Where(rec => rec.AdditionalCodeSystem == "BNF" && formularyVerIds.Contains(rec.FormularyVersionId))
+//                //  .ToList();
+
+//                var parentcodeFVIdsLkp = new Dictionary<string, List<string>>();
+
+//                foreach (var item in latestAMPFormulariesFromHeader)
+//                {
+//                    if (!parentcodeFVIdsLkp.ContainsKey(item.ParentCode))
+//                    {
+//                        parentcodeFVIdsLkp[item.ParentCode] = new List<string>() { item.FormularyVersionId };
+//                    }
+//                    else
+//                    {
+//                        parentcodeFVIdsLkp[item.ParentCode].Add(item.FormularyVersionId);
+//                    }
+//                }
+
+//                var vmpAllFormularies = formularyRepo.GetFormularyBasicDetailListForIds(formularyVerIds, true).ToList();
+
+//                if (!vmpAllFormularies.IsCollectionValid()) return NoContent();
+
+//                var vmpLatestFormularies = vmpAllFormularies.Where(rec => rec.IsLatest == true).ToList();
+
+//                if (!vmpLatestFormularies.IsCollectionValid()) return NoContent();
+
+//                foreach (var vmpFormulary in vmpLatestFormularies)
+//                {
+//                    if (vmpFormulary == null || !vmpFormulary.FormularyAdditionalCode.IsCollectionValid()) continue;
+
+//                    var formularyAdditinalsFromDB = _mapper.Map<List<FormularyAdditionalCode>>(vmpFormulary.FormularyAdditionalCode);//clone it
+
+//                    var bnfRecordsFromDB = formularyAdditinalsFromDB.Where(rec => string.Compare(rec.AdditionalCodeSystem, "bnf", true) == 0)?.ToList();
+
+//                    //var bnfRecords = _mapper
+//                    if (!bnfRecordsFromDB.IsCollectionValid()) continue;
+
+//                    //var ampsFVIds = parentcodeFVIdsLkp.ContainsKey(vmpFormulary.Code) ? parentcodeFVIdsLkp[vmpFormulary.Code] : null;
+
+//                    //if (!ampsFVIds.IsCollectionValid()) continue;
+
+//                    //Get Formulary additional codes for the AMPs and use its FVId to build new Additional codes for BNF from its VMP
+
+//                    if (!parentcodeFVIdsLkp.ContainsKey(vmpFormulary.Code)) continue;
+
+//                    var fvIdsOfChildAMPs = parentcodeFVIdsLkp[vmpFormulary.Code];
+
+//                    foreach (var parentBNF in bnfRecordsFromDB)
+//                    {
+//                        foreach (var fvId in fvIdsOfChildAMPs)
+//                        {
+//                            var newAdditionalGen = new FormularyAdditionalCode();
+//                            var newAdditional = _mapper.Map(parentBNF, newAdditionalGen);//clone it
+//                            newAdditional.RowId = null;//to be auto generated
+//                            newAdditional.FormularyVersionId = fvId;
+
+//                            additionalCodeRepo.Add(newAdditional);
+//                        }
+//                    }
+
+//                    additionalCodeRepo.SaveChanges();
+//                }
+//                */
+//                return Ok();
+//            });
+//        }
+
+//        private Dictionary<string, List<(string fvId, List<string> ampBNFs)>> GetAMPCodeWithItsFVIdsAndBNFsLkp(IRepository<FormularyHeader> repo, IRepository<FormularyAdditionalCode> additionalCodeRepo)
+//        {
+//            var latestAMPFormulariesFromHeader = repo.ItemsAsReadOnly
+//                   ?.Where(rec => rec.ProductType == "AMP" && rec.IsLatest == true)
+//                   ?.ToList();
+
+
+//            if (!latestAMPFormulariesFromHeader.IsCollectionValid()) return null;
+
+//            var uniqueFVIds = latestAMPFormulariesFromHeader.Select(rec => rec.FormularyVersionId).Distinct().ToList();
+
+//            var latestAMPFormularyAddnlCodesForFVIds = additionalCodeRepo.ItemsAsReadOnly
+//                   ?.Where(rec => uniqueFVIds.Contains(rec.FormularyVersionId) && rec.CodeType == TerminologyConstants.CODE_SYSTEM_CLASSIFICATION_TYPE && rec.AdditionalCodeSystem == "BNF")
+//                   ?.ToList();
+
+//            var fvIdBNFsLkp = new Dictionary<string, List<string>>();
+
+
+
+//            if (latestAMPFormularyAddnlCodesForFVIds.IsCollectionValid())
+//            {
+//                foreach (var item in latestAMPFormularyAddnlCodesForFVIds)
+//                {
+//                    var val = item.AdditionalCode?.Substring(0, 7);
+
+//                    if (val.IsEmpty()) continue;
+
+//                    if (!fvIdBNFsLkp.ContainsKey(item.FormularyVersionId))
+//                    {
+//                        fvIdBNFsLkp[item.FormularyVersionId] = new List<string> { val };
+//                    }
+//                    else
+//                    {
+//                        if (item.AdditionalCode.IsNotEmpty())
+//                        {
+//                            if (!fvIdBNFsLkp[item.FormularyVersionId].Any(rec => (rec == val)))
+//                                fvIdBNFsLkp[item.FormularyVersionId].Add(val);
+//                        }
+//                    }
+//                }
+//            }
+
+//            //Group by its parentcode and take all FVIds for that parentcode
+//            var parentcodeWithItsFVIdsLkp = new Dictionary<string, List<(string fvId, List<string> ampBNFs)>>();
+
+//            foreach (var ampHeader in latestAMPFormulariesFromHeader)
+//            {
+//                var ampBNFs = fvIdBNFsLkp.ContainsKey(ampHeader.FormularyVersionId) ? fvIdBNFsLkp[ampHeader.FormularyVersionId] : null;
+
+//                if (!parentcodeWithItsFVIdsLkp.ContainsKey(ampHeader.ParentCode))
+//                {
+//                    parentcodeWithItsFVIdsLkp[ampHeader.ParentCode] = new List<(string fvId, List<string> ampBNFs)> { (ampHeader.FormularyVersionId, ampBNFs) };
+//                }
+//                else
+//                {
+//                    parentcodeWithItsFVIdsLkp[ampHeader.ParentCode].Add((ampHeader.FormularyVersionId, ampBNFs));
+//                }
+//            }
+//            return parentcodeWithItsFVIdsLkp;
+//        }
+
+//        private Dictionary<string, List<FormularyAdditionalCode>> GetVMPCodeWithItsAdditionalBNFsLkp(IRepository<FormularyHeader> repo, IRepository<FormularyAdditionalCode> additionalCodeRepo)
+//        {
+//            var latestVMPFormulariesFromHeader = repo.ItemsAsReadOnly.Where(rec => rec.ProductType == "VMP" && rec.IsLatest == true).ToList();
+
+//            var formularyVerIds = latestVMPFormulariesFromHeader?.Select(rec => rec.FormularyVersionId).ToList();
+
+//            if (!formularyVerIds.IsCollectionValid()) return null;
+
+//            var bnfsForVMP = additionalCodeRepo.ItemsAsReadOnly?.Where(rec => rec.CodeType == TerminologyConstants.CODE_SYSTEM_CLASSIFICATION_TYPE &&
+//            rec.AdditionalCodeSystem == "BNF" && formularyVerIds.Contains(rec.FormularyVersionId))?.ToList();
+
+//            if (!bnfsForVMP.IsCollectionValid()) return null;
+
+//            var codeAdditionalsLkp = new Dictionary<string, List<FormularyAdditionalCode>>();
+
+//            foreach (var header in latestVMPFormulariesFromHeader)
+//            {
+//                var bnfAdditionalsForHeader = bnfsForVMP.Where(rec => rec.FormularyVersionId == header.FormularyVersionId)?.Select(rec =>
+//                {
+//                    var clonedRec = _mapper.Map<FormularyAdditionalCode>(rec);
+//                    //clonedRec.AdditionalCode = clonedRec.AdditionalCode.Substring(0, 7);//NOt required can be considered while reading
+//                    return clonedRec;
+//                })?.Distinct(rec => rec.AdditionalCode)?.ToList();
+
+//                if (!bnfAdditionalsForHeader.IsCollectionValid()) continue;
+
+//                if (!codeAdditionalsLkp.ContainsKey(header.Code))
+//                {
+//                    codeAdditionalsLkp[header.Code] = bnfAdditionalsForHeader;
+//                }
+//                else
+//                {
+//                    codeAdditionalsLkp[header.Code].AddRange(bnfAdditionalsForHeader);
+//                }
+//            }
+
+//            return codeAdditionalsLkp;
+//        }
+//    }
+//}

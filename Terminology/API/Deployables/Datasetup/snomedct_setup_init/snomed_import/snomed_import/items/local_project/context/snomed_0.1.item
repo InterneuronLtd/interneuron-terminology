@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talendfile:ContextType xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd" xmi:id="_k90EUPDfEeqlQMUG_OwQ_g" confirmationNeeded="false" name="Default">
+  <contextParameter xmi:id="_k90EUfDfEeqlQMUG_OwQ_g" comment="" name="snomed_int_file_path" prompt="snomed_int_file_path?" promptNeeded="true" type="id_String" value="C:\SNOMED_DMD\SnomedCT_InternationalRF2_PRODUCTION_20200731T120000Z\Full"/>
+  <contextParameter xmi:id="_k90EUvDfEeqlQMUG_OwQ_g" comment="" name="snomed_db_script_path" prompt="snomed_db_script_path?" promptNeeded="true" type="id_String" value="C:\SNOMED_DMD\DBScript\"/>
+  <contextParameter xmi:id="_k90EU_DfEeqlQMUG_OwQ_g" comment="" name="snomed_db_host" prompt="snomed_db_host?" promptNeeded="true" type="id_String" value="interneuron-ne-db-test.postgres.database.azure.com"/>
+  <contextParameter xmi:id="_k90EVPDfEeqlQMUG_OwQ_g" comment="" name="snomed_db_port" prompt="snomed_db_port?" promptNeeded="true" type="id_Integer" value="5432"/>
+  <contextParameter xmi:id="_k90EVfDfEeqlQMUG_OwQ_g" comment="" name="snomed_db_user" prompt="snomed_db_user?" promptNeeded="true" type="id_String" value="nedbtestadmin@interneuron-ne-db-test"/>
+  <contextParameter xmi:id="_k90EVvDfEeqlQMUG_OwQ_g" comment="" name="snomed_db_password" prompt="snomed_db_password?" promptNeeded="true" type="id_Password" value="enc:system.encryption.key.v1:4noyxohYxWGHBDQWA/qz+VzdRab/n38GOqTU1hjFodwTrDmSA3poZ79BGg=="/>
+  <contextParameter xmi:id="_k90EV_DfEeqlQMUG_OwQ_g" comment="" name="snomed_db_pwd_string" prompt="snomed_db_pwd_string?" promptNeeded="true" type="id_String" value="N3ur0n!nedbtest"/>
+  <contextParameter xmi:id="_k90EWPDfEeqlQMUG_OwQ_g" comment="" name="snomed_db_schema" prompt="snomed_db_schema?" promptNeeded="true" type="id_String" value="terminology"/>
+  <contextParameter xmi:id="_k90EWfDfEeqlQMUG_OwQ_g" comment="" name="snomed_db_name" prompt="snomed_db_name?" promptNeeded="true" type="id_String" value="mmc_dev_playground"/>
+  <contextParameter xmi:id="_k90EWvDfEeqlQMUG_OwQ_g" comment="" name="snomed_db_additionalparams" prompt="snomed_db_additionalparams?" promptNeeded="true" type="id_String" value=""/>
+  <contextParameter xmi:id="_k90EW_DfEeqlQMUG_OwQ_g" comment="" name="snomed_int_release" prompt="snomed_int_release?" promptNeeded="true" type="id_String" value="20200731"/>
+  <contextParameter xmi:id="_k90EXPDfEeqlQMUG_OwQ_g" comment="" name="snomed_uk_release" prompt="snomed_uk_release?" promptNeeded="true" type="id_String" value="20200805"/>
+  <contextParameter xmi:id="_k90EXfDfEeqlQMUG_OwQ_g" comment="" name="snomed_uk_file_path" prompt="snomed_uk_file_path?" promptNeeded="true" type="id_String" value="/Users/arunnanjundaswamy/Documents/interneuron/projects/EPMA/uk_sct2cl_30.0.0_20200805000001"/>
+  <contextParameter xmi:id="_66MbEPDqEeqlQMUG_OwQ_g" comment="" name="snomed_db_psql_path" prompt="snomed_db_psql_path?" promptNeeded="true" type="id_String" value=""/>
+  <contextParameter xmi:id="_WzMEACr7EeuPubMxNiErVQ" comment="" name="snomed_clinical_ext_file_path" prompt="snomed_clinical_ext_file_path?" promptNeeded="true" type="id_String" value="/Users/arunnanjundaswamy/Documents/interneuron/projects/EPMA/MedicinalManagement/SNOMED_DATA/Updated_20102020/uk_sct2cl_30.0.0_20200805000001"/>
+  <contextParameter xmi:id="_WzMEASr7EeuPubMxNiErVQ" comment="" name="snomed_drug_ext_file_path" prompt="snomed_drug_ext_file_path?" promptNeeded="true" type="id_String" value="/Users/arunnanjundaswamy/Documents/interneuron/projects/EPMA/MedicinalManagement/SNOMED_DATA/Updated_20102020/SnomedCT_UKDrugRF2_PRODUCTION_20200930T000001Z"/>
+</talendfile:ContextType>

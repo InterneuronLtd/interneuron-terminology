@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talendfile:ContextType xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd" xmi:id="_6JiaAFTeEeuE1_2p0lH4fg" confirmationNeeded="false" name="Default">
+  <contextParameter xmi:id="_6JiaAVTeEeuE1_2p0lH4fg" comment="" name="dmd_file_path" prompt="dmd_file_path?" promptNeeded="true" type="id_String" value="/Users/arunnanjundaswamy/Documents/interneuron/projects/EPMA/MedicinalManagement/nhsbsa_dmd_8.4.0_20200831000001 (1)"/>
+  <contextParameter xmi:id="_6JiaAlTeEeuE1_2p0lH4fg" comment="" name="dmd_db_script_path" prompt="dmd_db_script_path?" promptNeeded="true" type="id_String" value="C:\SNOMED_DMD\DBScript\"/>
+  <contextParameter xmi:id="_6JiaA1TeEeuE1_2p0lH4fg" comment="" name="dmd_db_host" prompt="dmd_db_host?" promptNeeded="true" type="id_String" value="interneuron-ne-db-test.postgres.database.azure.com"/>
+  <contextParameter xmi:id="_6JiaBFTeEeuE1_2p0lH4fg" comment="" name="dmd_db_port" prompt="dmd_db_port?" promptNeeded="true" type="id_Integer" value="5432"/>
+  <contextParameter xmi:id="_6JiaBVTeEeuE1_2p0lH4fg" comment="" name="dmd_db_user" prompt="dmd_db_user?" promptNeeded="true" type="id_String" value="nedbtestadmin@interneuron-ne-db-test"/>
+  <contextParameter xmi:id="_6JiaBlTeEeuE1_2p0lH4fg" comment="" name="dmd_db_password" prompt="dmd_db_password?" promptNeeded="true" type="id_Password" value="enc:system.encryption.key.v1:2fQu6DFN710GCriJRAHQ4BH+83tZSOgw25tyqRDBx6pbkQxNfHVlFnhb/g=="/>
+  <contextParameter xmi:id="_6JiaB1TeEeuE1_2p0lH4fg" comment="" name="dmd_db_pwd_string" prompt="dmd_db_pwd_string?" promptNeeded="true" type="id_String" value="N3ur0n!nedbtest"/>
+  <contextParameter xmi:id="_6JiaCFTeEeuE1_2p0lH4fg" comment="" name="dmd_db_schema" prompt="dmd_db_schema?" promptNeeded="true" type="id_String" value="terminology"/>
+  <contextParameter xmi:id="_6JiaCVTeEeuE1_2p0lH4fg" comment="" name="dmd_db_name" prompt="dmd_db_name?" promptNeeded="true" type="id_String" value="mmc_dev_playground"/>
+  <contextParameter xmi:id="_6JiaClTeEeuE1_2p0lH4fg" comment="" name="dmd_db_additionalparams" prompt="dmd_db_additionalparams?" promptNeeded="true" type="id_String" value=""/>
+  <contextParameter xmi:id="_6JiaC1TeEeuE1_2p0lH4fg" comment="" name="dmd_db_psql_path" prompt="dmd_db_psql_path?" promptNeeded="true" type="id_String" value=""/>
+  <contextParameter xmi:id="_6JiaDFTeEeuE1_2p0lH4fg" comment="" name="dmd_db_stg_host" prompt="dmd_db_stg_host?" promptNeeded="true" type="id_String" value="interneuron-ne-db-test.postgres.database.azure.com"/>
+  <contextParameter xmi:id="_6JiaDVTeEeuE1_2p0lH4fg" comment="" name="dmd_db_stg_port" prompt="dmd_db_stg_port?" promptNeeded="true" type="id_Integer" value="5432"/>
+  <contextParameter xmi:id="_6JiaDlTeEeuE1_2p0lH4fg" comment="" name="dmd_db_stg_user" prompt="dmd_db_stg_user?" promptNeeded="true" type="id_String" value="nedbtestadmin@interneuron-ne-db-test"/>
+  <contextParameter xmi:id="_6JiaD1TeEeuE1_2p0lH4fg" comment="" name="dmd_db_stg_password" prompt="dmd_db_stg_password?" promptNeeded="true" type="id_Password" value="enc:system.encryption.key.v1:ZORVSfpy2vfbSobQPL0sFfpcCtQo9HpQrkMcaiRjMkKHOH6qPyltSEyP/g=="/>
+  <contextParameter xmi:id="_6JiaEFTeEeuE1_2p0lH4fg" comment="" name="dmd_db_stg_pwd_string" prompt="dmd_db_stg_pwd_string?" promptNeeded="true" type="id_String" value="N3ur0n!nedbtest"/>
+  <contextParameter xmi:id="_6JiaEVTeEeuE1_2p0lH4fg" comment="" name="dmd_db_stg_schema" prompt="dmd_db_stg_schema?" promptNeeded="true" type="id_String" value="terminology_staging"/>
+  <contextParameter xmi:id="_6JiaElTeEeuE1_2p0lH4fg" comment="" name="dmd_db_stg_name" prompt="dmd_db_stg_name?" promptNeeded="true" type="id_String" value="mmc_dev_playground"/>
+  <contextParameter xmi:id="_6JiaE1TeEeuE1_2p0lH4fg" comment="" name="dmd_db_stg_additionalparams" prompt="dmd_db_stg_additionalparams?" promptNeeded="true" type="id_String" value=""/>
+  <contextParameter xmi:id="_6JiaFFTeEeuE1_2p0lH4fg" comment="" name="dmd_version" prompt="dmd_version?" promptNeeded="true" type="id_String" value=""/>
+</talendfile:ContextType>

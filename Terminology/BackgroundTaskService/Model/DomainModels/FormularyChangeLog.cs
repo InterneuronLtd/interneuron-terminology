@@ -1,0 +1,56 @@
+ //Interneuron synapse
+
+//Copyright(C) 2024 Interneuron Limited
+
+//This program is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//This program is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+//See the
+//GNU General Public License for more details.
+
+//You should have received a copy of the GNU General Public License
+//along with this program.If not, see<http://www.gnu.org/licenses/>.
+﻿using System;
+using System.Collections.Generic;
+
+namespace Interneuron.Terminology.BackgroundTaskService.Model.DomainModels
+{
+    public partial class FormularyChangeLog : Interneuron.Terminology.BackgroundTaskService.Infrastructure.Domain.EntityBase, Infrastructure.Domain.IAuditable
+    {
+        public string RowId { get; set; } = null!;
+        public DateTime? Createdtimestamp { get; set; }
+        public DateTime? Createddate { get; set; }
+        public string? Createdby { get; set; }
+        public string? Timezonename { get; set; }
+        public int? Timezoneoffset { get; set; }
+        public string? Tenant { get; set; }
+        public DateTime? Updatedtimestamp { get; set; }
+        public DateTime? Updateddate { get; set; }
+        public string? Updatedby { get; set; }
+        public string? Code { get; set; }
+        public string? FormularyId { get; set; }
+        public string? Name { get; set; }
+        public string? ProductType { get; set; }
+        public string? ParentCode { get; set; }
+        public string? EntitiesCompared { get; set; }
+        public bool? HasProductInvalidFlagChanged { get; set; }
+        public string? ProductInvalidChanges { get; set; }
+        public bool? HasProductDeletedChanged { get; set; }
+        public string? ProductDeletedChanges { get; set; }
+        public bool? HasProductDetailChanged { get; set; }
+        public string? ProductDetailChanges { get; set; }
+        public bool? HasProductPosologyChanged { get; set; }
+        public string? ProductPosologyChanges { get; set; }
+        public bool? HasProductGuidanceChanged { get; set; }
+        public string? ProductGuidanceChanges { get; set; }
+        public bool? HasProductFlagsChanged { get; set; }
+        public string? ProductFlagsChanges { get; set; }
+        public string? DeltaDetail { get; set; }
+    }
+}

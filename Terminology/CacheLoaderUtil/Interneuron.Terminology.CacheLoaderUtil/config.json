@@ -1,0 +1,29 @@
+﻿{
+  "access_token_ep": {
+    "url": "SYNAPSE_IDENTITY_URI/connect/token",
+    "params": [
+      {
+        "key": "grant_type",
+        "value": "client_credentials"
+      },
+      {
+        "key": "client_id",
+        "value": "client"
+      },
+      {
+        "key": "client_secret",
+        "value": "secret"
+      },
+      {
+        "key": "scope",
+        "value": "carerecordapi.read terminologyapi.read"
+      }
+    ]
+  },
+  "formulary_cache_ep": {
+    "url": "TERMINOLOGY_URI/api/util/Cache/cacheformularydetailruleboundbycode"
+  },
+  "lookup_cache_ep": {
+    "url": "TERMINOLOGY_URI/api/util/Cache/reloadlookupcache"
+  }
+}
