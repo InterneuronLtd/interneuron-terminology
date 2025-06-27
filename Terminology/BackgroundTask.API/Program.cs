@@ -99,8 +99,9 @@ namespace Interneuron.Terminology.BackgroundTask.API
                     webBuilder.UseIISIntegration();
                     webBuilder.ConfigureKestrel(opt => opt.Limits.KeepAliveTimeout = TimeSpan.FromHours(24));
                     webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
-                    webBuilder.UseSerilog();
-                }).Build();
+                    //webBuilder.UseSerilog();
+                }).UseSerilog()
+            .Build();
 
         private static IConfiguration GetConfiguration()
         {

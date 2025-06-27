@@ -309,7 +309,9 @@ namespace Interneuron.Terminology.Repository
 
             tokenToSearch = tokenToSearch.TrimStart(' ', '&');
 
-            var qryStmt = $"SELECT * from terminology.udf_dmd_get_child_nodes_search('{tokenToSearch}', '{searchTerm}')";
+            //var qryStmt = $"SELECT * from terminology.udf_dmd_get_child_nodes_search('{tokenToSearch}', '{searchTerm}')";
+            string qryStmt = $"SELECT * FROM terminology.udf_dmd_get_child_nodes_search(@tokens_to_search, @search_term)";
+
 
             IEnumerable<DMDSearchResultFlattenedModel> results;
 
@@ -317,7 +319,8 @@ namespace Interneuron.Terminology.Repository
 
             using (var conn = new Npgsql.NpgsqlConnection(connString))
             {
-                results = await conn.QueryAsync<DMDSearchResultFlattenedModel>(qryStmt);
+                //results = await conn.QueryAsync<DMDSearchResultFlattenedModel>(qryStmt);
+                results = await conn.QueryAsync<DMDSearchResultFlattenedModel>(qryStmt, new {tokens_to_search = tokenToSearch, search_term = searchTerm});
             }
 
             var completedResults = FillEntitiesFromFlatList(results.ToList());
@@ -339,7 +342,9 @@ namespace Interneuron.Terminology.Repository
 
             tokenToSearch = tokenToSearch.TrimStart(' ', '&');
 
-            var qryStmt = $"SELECT * from terminology.udf_dmd_get_ancestor_nodes_search('{tokenToSearch}', '{searchTerm}')";
+            //var qryStmt = $"SELECT * from terminology.udf_dmd_get_ancestor_nodes_search('{tokenToSearch}', '{searchTerm}')";
+            var qryStmt = $"SELECT * from terminology.udf_dmd_get_ancestor_nodes_search(@token_to_search, @search_term)";
+
 
             IEnumerable<DMDSearchResultFlattenedModel> results;
 
@@ -347,7 +352,9 @@ namespace Interneuron.Terminology.Repository
 
             using (var conn = new Npgsql.NpgsqlConnection(connString))
             {
-                results = await conn.QueryAsync<DMDSearchResultFlattenedModel>(qryStmt);
+                //results = await conn.QueryAsync<DMDSearchResultFlattenedModel>(qryStmt);
+                results = await conn.QueryAsync<DMDSearchResultFlattenedModel>(qryStmt, new { token_to_search = tokenToSearch, search_term = searchTerm });
+
             }
             var completedResults = FillEntitiesFromFlatList(results.ToList());
 

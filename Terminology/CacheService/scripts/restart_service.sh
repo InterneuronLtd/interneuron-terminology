@@ -1,2 +1,0 @@
-sudo systemctl restart terminologycacheserviceapi.service
-sudo systemctl restart nginx

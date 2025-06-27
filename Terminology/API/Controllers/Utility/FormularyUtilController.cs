@@ -79,7 +79,8 @@ namespace Interneuron.Terminology.API.Controllers.Utility
 
             using var client = new RestClient(dynamicServiceAPIUrl);
 
-            var request = new RestRequest() { Method = Method.Get, Timeout = -1 };
+            //var request = new RestRequest() { Method = Method.Get, Timeout = -1 };
+            var request = new RestRequest() { Method = Method.Get, Timeout = TimeSpan.FromDays(2) };
             request.AddHeader("Authorization", $"Bearer {accessToken}");
 
             request.AddHeader("Content-Type", "application/json");
@@ -130,7 +131,8 @@ namespace Interneuron.Terminology.API.Controllers.Utility
 
             using (var client = new RestClient(accessTokenUrl))
             {
-                var request = new RestRequest() { Method = Method.Post, Timeout = -1 };
+                //var request = new RestRequest() { Method = Method.Post, Timeout = -1 };
+                var request = new RestRequest() { Method = Method.Post, Timeout = TimeSpan.FromDays(2) };
                 request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
 
                 foreach (var param in headerParams)

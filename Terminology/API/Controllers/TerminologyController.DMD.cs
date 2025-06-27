@@ -145,7 +145,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status410Gone)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<DMDDetailResultDTO>>> GetDMDFullDataForCodes(List<string> codes)
+        public async Task<ActionResult<List<DMDDetailResultDTO>>> GetDMDFullDataForCodes([FromBody] List<string> codes)
         {
             if (!codes.IsCollectionValid() || codes.Any(rec=> rec.IsEmpty())) return BadRequest("Codes are empty.");
 
@@ -161,7 +161,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status410Gone)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<DmdAmpExcipientDTO>>> GetAMPExcipientsForCodes(List<string> dmdCodes)
+        public async Task<ActionResult<List<DmdAmpExcipientDTO>>> GetAMPExcipientsForCodes([FromBody] List<string> dmdCodes)
         {
             if (!dmdCodes.IsCollectionValid()) return BadRequest("Missing input parameter");
 
@@ -180,7 +180,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status410Gone)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<DmdAmpDrugrouteDTO>>> GetAMPDrugRoutesForCodes(List<string> dmdCodes)
+        public async Task<ActionResult<List<DmdAmpDrugrouteDTO>>> GetAMPDrugRoutesForCodes([FromBody] List<string> dmdCodes)
         {
             if (!dmdCodes.IsCollectionValid()) return BadRequest("Missing input parameter");
 
@@ -199,7 +199,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status410Gone)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<DmdVmpDrugrouteDTO>>> GetVMPDrugRoutesForCodes(List<string> dmdCodes)
+        public async Task<ActionResult<List<DmdVmpDrugrouteDTO>>> GetVMPDrugRoutesForCodes([FromBody] List<string> dmdCodes)
         {
             if (!dmdCodes.IsCollectionValid()) return BadRequest("Missing input parameter");
 
@@ -272,7 +272,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status410Gone)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> UpdateFormularySyncStatus(List<string> dmdCodes)
+        public async Task<ActionResult> UpdateFormularySyncStatus([FromBody] List<string> dmdCodes)
         {
             if (!dmdCodes.IsCollectionValid()) return BadRequest("Missing input parameter");
 

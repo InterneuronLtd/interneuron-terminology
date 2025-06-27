@@ -289,7 +289,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Dictionary<string, long>>> GetFormularyIdOrderInfoLookup(List<string> formularyIds)
+        public async Task<ActionResult<Dictionary<string, long>>> GetFormularyIdOrderInfoLookup([FromBody] List<string> formularyIds)
         {
             if (!formularyIds.IsCollectionValid() || formularyIds.Any(d => d.IsEmpty()))
                 return BadRequest();

@@ -17,6 +17,8 @@
 //You should have received a copy of the GNU General Public License
 //along with this program.If not, see<http://www.gnu.org/licenses/>.
 using System;
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Elastic.Apm;
@@ -77,10 +79,7 @@ namespace Interneuron.Terminology.API
                 config.AssumeDefaultVersionWhenUnspecified = true;
                 config.ReportApiVersions = true;
                 //config.ApiVersionReader = new HeaderApiVersionReader("api-version");
-            });
-
-
-            services.AddVersionedApiExplorer(
+            }).AddApiExplorer(
                 options =>
                 {
                     // note: the specified format code will format the version as "'v'major[.minor]"

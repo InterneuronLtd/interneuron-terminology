@@ -119,7 +119,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status410Gone)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<List<SnomedSearchResultWithTreeDTO>> GetSnomedDescendentForConceptIds(string[] conceptIds)
+        public async Task<List<SnomedSearchResultWithTreeDTO>> GetSnomedDescendentForConceptIds([FromBody] string[] conceptIds)
         {
             return await this._snomedCTQueries.GetSnomedDescendentForConceptIds(conceptIds);
         }
@@ -129,7 +129,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status410Gone)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<List<SnomedSearchResultWithTreeDTO>> GetSnomedAncestorForConceptIds(string[] conceptIds)
+        public async Task<List<SnomedSearchResultWithTreeDTO>> GetSnomedAncestorForConceptIds([FromBody] string[] conceptIds)
         {
             return await this._snomedCTQueries.GetSnomedAncestorForConceptIds(conceptIds);
         }
@@ -211,7 +211,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status410Gone)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<SnomedTradeFamiliesDTO>>> GetTradeFamilyForConceptIds(List<string> conceptIds, [FromHeader] bool ignoreCacheSource = false)
+        public async Task<ActionResult<List<SnomedTradeFamiliesDTO>>> GetTradeFamilyForConceptIds([FromBody] List<string> conceptIds, [FromHeader] bool ignoreCacheSource = false)
         {
             if (!conceptIds.IsCollectionValid()) return BadRequest("Missing input parameter");
             return await new TaskFactory<ActionResult<List<SnomedTradeFamiliesDTO>>>().StartNew(() =>
@@ -229,7 +229,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status410Gone)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<SnomedModifiedReleaseDTO>>> GetModifiedReleaseForConceptIds(List<string> conceptIds, [FromHeader] bool ignoreCacheSource = false)
+        public async Task<ActionResult<List<SnomedModifiedReleaseDTO>>> GetModifiedReleaseForConceptIds([FromBody] List<string> conceptIds, [FromHeader] bool ignoreCacheSource = false)
         {
             if (!conceptIds.IsCollectionValid()) return BadRequest("Missing input parameter");
             return await new TaskFactory<ActionResult<List<SnomedModifiedReleaseDTO>>>().StartNew(() =>

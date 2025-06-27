@@ -16,7 +16,8 @@
 
 //You should have received a copy of the GNU General Public License
 //along with this program.If not, see<http://www.gnu.org/licenses/>.
-﻿using Interneuron.Common.Extensions;
+﻿using Asp.Versioning.ApiExplorer;
+using Interneuron.Common.Extensions;
 using Interneuron.Terminology.API.AppCode.Filters;
 using Interneuron.Terminology.API.AppCode.Infrastructure.Swagger;
 using Microsoft.AspNetCore.Builder;

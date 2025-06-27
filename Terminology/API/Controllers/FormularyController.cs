@@ -26,6 +26,7 @@ using Interneuron.Terminology.API.AppCode.Core.BackgroundProcess;
 using Interneuron.Terminology.API.AppCode.DTOs;
 using Interneuron.Terminology.API.AppCode.DTOs.Formulary;
 using Interneuron.Terminology.API.AppCode.DTOs.Formulary.Requests;
+using Interneuron.Terminology.API.AppCode.Extensions;
 using Interneuron.Terminology.API.AppCode.Queries;
 using Interneuron.Terminology.API.AppCode.Validators;
 using Interneuron.Terminology.Infrastructure.Domain;
@@ -342,7 +343,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<FormularySearchResultDTO>>> GetFormularyDescendentForCodes(GetFormularyDescendentForCodesRequest request)
+        public async Task<ActionResult<List<FormularySearchResultDTO>>> GetFormularyDescendentForCodes([FromBody] GetFormularyDescendentForCodesRequest request)
         {
             if (request == null || !request.Codes.IsCollectionValid()) return BadRequest();
 
@@ -358,7 +359,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<FormularySearchResultDTO>>> GetFormularyImmediateDescendentForFormularyVersionIds(GetFormularyDescendentForFormularyVersionIdsRequest request)
+        public async Task<ActionResult<List<FormularySearchResultDTO>>> GetFormularyImmediateDescendentForFormularyVersionIds([FromBody] GetFormularyDescendentForFormularyVersionIdsRequest request)
         {
             if (request == null || !request.FormularyVersionIds.IsCollectionValid()) return BadRequest();
 
@@ -708,7 +709,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status207MultiStatus)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<DeriveProductNamesDTO>> DeriveProductNames(DeriveProductNamesRequest request)
+        public async Task<ActionResult<DeriveProductNamesDTO>> DeriveProductNames([FromBody] DeriveProductNamesRequest request)
         {
             var validationResult = new DeriveProductNamesRequestValidator(request).Validate();
 
@@ -725,7 +726,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status207MultiStatus)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<CheckIfProductExistsDTO>> CheckIfProductExists(CheckIfProductExistsRequest request)
+        public async Task<ActionResult<CheckIfProductExistsDTO>> CheckIfProductExists([FromBody] CheckIfProductExistsRequest request)
         {
             var validationResult = new CheckIfProductExistsRequestValidator(request).Validate();
 
@@ -751,7 +752,16 @@ namespace Interneuron.Terminology.API.Controllers
             if (request.FilterParams.IsNotEmpty())
             {
                 request.FilterParamsAsKV = Newtonsoft.Json.JsonConvert.DeserializeObject<List<KeyValuePair<string, string>>>(request.FilterParams);
+
+                //check for vulnerable sql in each key value pair
+                foreach (var condn in request.FilterParamsAsKV)
+                {
+                    condn.Key.CheckStringForSQLi(_configuration);
+                    condn.Value.CheckStringForSQLi(_configuration);
+                }
             }
+
+
 
             var results = await this._formularyQueries.GetHistoryOfFormularies(request);
 
@@ -765,7 +775,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<FormularyLocalLicensedUseDTO>>> GetLocalLicensedUse(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<FormularyLocalLicensedUseDTO>>> GetLocalLicensedUse([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetLocalLicensedUse(formularyVersionIds);
 
@@ -778,7 +788,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<FormularyLocalUnlicensedUseDTO>>> GetLocalUnlicensedUse(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<FormularyLocalUnlicensedUseDTO>>> GetLocalUnlicensedUse([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetLocalUnlicensedUse(formularyVersionIds);
 
@@ -791,7 +801,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<FormularyLocalLicensedRouteDTO>>> GetLocalLicensedRoute(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<FormularyLocalLicensedRouteDTO>>> GetLocalLicensedRoute([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetLocalLicensedRoute(formularyVersionIds);
 
@@ -804,7 +814,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<FormularyLocalUnlicensedRouteDTO>>> GetLocalUnlicensedRoute(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<FormularyLocalUnlicensedRouteDTO>>> GetLocalUnlicensedRoute([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetLocalUnlicensedRoute(formularyVersionIds);
 
@@ -817,7 +827,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<CustomWarningDTO>>> GetCustomWarning(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<CustomWarningDTO>>> GetCustomWarning([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetCustomWarning(formularyVersionIds);
 
@@ -830,7 +840,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<ReminderDTO>>> GetReminder(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<ReminderDTO>>> GetReminder([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetReminder(formularyVersionIds);
 
@@ -843,7 +853,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<EndorsementDTO>>> GetEndorsement(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<EndorsementDTO>>> GetEndorsement([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetEndorsement(formularyVersionIds);
 
@@ -856,7 +866,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<MedusaPreparationInstructionDTO>>> GetMedusaPreparationInstruction(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<MedusaPreparationInstructionDTO>>> GetMedusaPreparationInstruction([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetMedusaPreparationInstruction(formularyVersionIds);
 
@@ -869,7 +879,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<TitrationTypeDTO>>> GetTitrationType(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<TitrationTypeDTO>>> GetTitrationType([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetTitrationType(formularyVersionIds);
 
@@ -882,7 +892,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<RoundingFactorDTO>>> GetRoundingFactor(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<RoundingFactorDTO>>> GetRoundingFactor([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetRoundingFactor(formularyVersionIds);
 
@@ -895,7 +905,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<CompatibleDiluentDTO>>> GetCompatibleDiluent(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<CompatibleDiluentDTO>>> GetCompatibleDiluent([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetCompatibleDiluent(formularyVersionIds);
 
@@ -908,7 +918,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<ClinicalTrialMedicationDTO>>> GetClinicalTrialMedication(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<ClinicalTrialMedicationDTO>>> GetClinicalTrialMedication([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetClinicalTrialMedication(formularyVersionIds);
 
@@ -921,7 +931,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<GastroResistantDTO>>> GetGastroResistant(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<GastroResistantDTO>>> GetGastroResistant([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetGastroResistant(formularyVersionIds);
 
@@ -934,7 +944,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<CriticalDrugDTO>>> GetCriticalDrug(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<CriticalDrugDTO>>> GetCriticalDrug([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetCriticalDrug(formularyVersionIds);
 
@@ -947,7 +957,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<ModifiedReleaseDTO>>> GetModifiedRelease(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<ModifiedReleaseDTO>>> GetModifiedRelease([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetModifiedRelease(formularyVersionIds);
 
@@ -960,7 +970,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<ExpensiveMedicationDTO>>> GetExpensiveMedication(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<ExpensiveMedicationDTO>>> GetExpensiveMedication([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetExpensiveMedication(formularyVersionIds);
 
@@ -973,7 +983,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<HighAlertMedicationDTO>>> GetHighAlertMedication(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<HighAlertMedicationDTO>>> GetHighAlertMedication([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetHighAlertMedication(formularyVersionIds);
 
@@ -986,7 +996,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<IVToOralDTO>>> GetIVToOral(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<IVToOralDTO>>> GetIVToOral([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetIVToOral(formularyVersionIds);
 
@@ -999,7 +1009,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<NotForPRNDTO>>> GetNotForPRN(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<NotForPRNDTO>>> GetNotForPRN([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetNotForPRN(formularyVersionIds);
 
@@ -1012,7 +1022,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<BloodProductDTO>>> GetBloodProduct(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<BloodProductDTO>>> GetBloodProduct([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetBloodProduct(formularyVersionIds);
 
@@ -1025,7 +1035,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<DiluentDTO>>> GetDiluent(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<DiluentDTO>>> GetDiluent([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetDiluent(formularyVersionIds);
 
@@ -1038,7 +1048,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<PrescribableDTO>>> GetPrescribable(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<PrescribableDTO>>> GetPrescribable([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetPrescribable(formularyVersionIds);
 
@@ -1051,7 +1061,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<OutpatientMedicationDTO>>> GetOutpatientMedication(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<OutpatientMedicationDTO>>> GetOutpatientMedication([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetOutpatientMedication(formularyVersionIds);
 
@@ -1064,7 +1074,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<IgnoreDuplicateWarningDTO>>> GetIgnoreDuplicateWarning(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<IgnoreDuplicateWarningDTO>>> GetIgnoreDuplicateWarning([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetIgnoreDuplicateWarning(formularyVersionIds);
 
@@ -1077,7 +1087,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<ControlledDrugDTO>>> GetControlledDrug(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<ControlledDrugDTO>>> GetControlledDrug([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetControlledDrug(formularyVersionIds);
 
@@ -1090,7 +1100,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<PrescriptionPrintingRequiredDTO>>> GetPrescriptionPrintingRequired(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<PrescriptionPrintingRequiredDTO>>> GetPrescriptionPrintingRequired([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetPrescriptionPrintingRequired(formularyVersionIds);
 
@@ -1103,7 +1113,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<IndicationMandatoryDTO>>> GetIndicationMandatory(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<IndicationMandatoryDTO>>> GetIndicationMandatory([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetIndicationMandatory(formularyVersionIds);
 
@@ -1116,7 +1126,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<WitnessingRequiredDTO>>> GetWitnessingRequired(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<WitnessingRequiredDTO>>> GetWitnessingRequired([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetWitnessingRequired(formularyVersionIds);
 
@@ -1129,7 +1139,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<FormularyStatusDTO>>> GetFormularyStatus(List<string> formularyVersionIds)
+        public async Task<ActionResult<List<FormularyStatusDTO>>> GetFormularyStatus([FromBody] List<string> formularyVersionIds)
         {
             var results = await this._formularyQueries.GetFormularyStatus(formularyVersionIds);
 
@@ -1195,7 +1205,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<bool>> GetHeaderRecordsLock(List<string> formularyVersionIds)
+        public async Task<ActionResult<bool>> GetHeaderRecordsLock([FromBody] List<string> formularyVersionIds)
         {
             if (!formularyVersionIds.IsCollectionValid()) return BadRequest();
             return Ok(await _formularyCommand.GetHeaderRecordsLock(formularyVersionIds));
@@ -1205,7 +1215,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> TryReleaseHeaderRecordsLock(List<string> formularyVersionIds)
+        public async Task<ActionResult> TryReleaseHeaderRecordsLock([FromBody] List<string> formularyVersionIds)
         {
             if (!formularyVersionIds.IsCollectionValid()) return BadRequest();
             await _formularyCommand.TryReleaseHeaderRecordsLock(formularyVersionIds);
@@ -1225,7 +1235,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<FormularyLocalRouteDetailDTO>> GetLocalRoutesForIds(GetRoutesRequest request)
+        public async Task<ActionResult<FormularyLocalRouteDetailDTO>> GetLocalRoutesForIds([FromBody] GetRoutesRequest request)
         {
             if (request == null || !request.FormularyVersionIds.IsCollectionValid()) return BadRequest();
 
@@ -1243,7 +1253,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<FormularyRouteDetailDTO>> GetRoutesForIds(GetRoutesRequest request)
+        public async Task<ActionResult<FormularyRouteDetailDTO>> GetRoutesForIds([FromBody] GetRoutesRequest request)
         {
             if (request == null || !request.FormularyVersionIds.IsCollectionValid()) return BadRequest();
 

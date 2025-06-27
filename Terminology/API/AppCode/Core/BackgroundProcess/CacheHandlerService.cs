@@ -98,7 +98,8 @@ namespace Interneuron.Terminology.API.AppCode.Core.BackgroundProcess
 
                     using var client = new RestClient(cacheServiceAPIUrl);
 
-                    var request = new RestRequest() { Method = Method.Post, Timeout = -1 };
+                    //var request = new RestRequest() { Method = Method.Post, Timeout = -1 };
+                    var request = new RestRequest() { Method = Method.Post, Timeout = TimeSpan.FromDays(2) };
                     //request.AddHeader("Authorization", $"Bearer {accessToken}");
 
                     request.AddHeader("Content-Type", "application/json");

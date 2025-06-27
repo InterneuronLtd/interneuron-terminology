@@ -109,7 +109,8 @@ namespace Interneuron.Terminology.Repository
 
             tokenToSearch = tokenToSearch.TrimStart(' ', '&');
 
-            var qryStmt = $"SELECT * from terminology.udf_snomed_get_child_nodes_search_term_by_tag('{tokenToSearch}', '{searchTerm}','{semanticTag}')";
+            // var qryStmt = $"SELECT * from terminology.udf_snomed_get_child_nodes_search_term_by_tag('{tokenToSearch}', '{searchTerm}','{semanticTag}')";
+            var qryStmt = $"SELECT * from terminology.udf_snomed_get_child_nodes_search_term_by_tag(@in_tokenToSearch, @in_searchTerm, @in_semanticTag)";
 
             //this._dbContext.Database.fro("SELECT * from generate_accession_attributes({0}, {1})", tokenToSearch, );
 
@@ -122,7 +123,9 @@ namespace Interneuron.Terminology.Repository
 
             using (var conn = new Npgsql.NpgsqlConnection(connString))
             {
-                results = await conn.QueryAsync<SNOMEDCTSearchResultModel>(qryStmt);
+                // results = await conn.QueryAsync<SNOMEDCTSearchResultModel>(qryStmt);
+                results = await conn.QueryAsync<SNOMEDCTSearchResultModel>(qryStmt, new { in_tokenToSearch = tokenToSearch, in_searchTerm = searchTerm, in_semanticTag = semanticTag });
+
             }
 
             if (results == null) return null;
@@ -155,7 +158,9 @@ namespace Interneuron.Terminology.Repository
 
             tokenToSearch = tokenToSearch.TrimStart(' ', '&');
 
-            var qryStmt = $"SELECT * from terminology.udf_snomed_get_ancestor_nodes_search_term_by_tag('{tokenToSearch}', '{searchTerm}', '{semanticTag}')";
+            //var qryStmt = $"SELECT * from terminology.udf_snomed_get_ancestor_nodes_search_term_by_tag('{tokenToSearch}', '{searchTerm}', '{semanticTag}')";
+            var qryStmt = $"SELECT * from terminology.udf_snomed_get_ancestor_nodes_search_term_by_tag(@in_tokenToSearch, @in_searchTerm, @in_semanticTag)";
+
 
             IEnumerable<SNOMEDCTSearchResultModel> results;
 
@@ -163,7 +168,9 @@ namespace Interneuron.Terminology.Repository
 
             using (var conn = new Npgsql.NpgsqlConnection(connString))
             {
-                results = await conn.QueryAsync<SNOMEDCTSearchResultModel>(qryStmt);
+                //results = await conn.QueryAsync<SNOMEDCTSearchResultModel>(qryStmt);
+                results = await conn.QueryAsync<SNOMEDCTSearchResultModel>(qryStmt, new { in_tokenToSearch = tokenToSearch, in_searchTerm = searchTerm, in_semanticTag = semanticTag });
+
             }
             if (results == null) return null;
 

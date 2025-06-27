@@ -16,15 +16,8 @@
 
 //You should have received a copy of the GNU General Public License
 //along with this program.If not, see<http://www.gnu.org/licenses/>.
-﻿using Interneuron.Common.Extensions;
-using Interneuron.Terminology.API.AppCode.Queries;
-using Interneuron.Terminology.Infrastructure.Domain;
-using Interneuron.Terminology.Model.DomainModels;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
+﻿using Interneuron.Terminology.API.AppCode.Queries;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Interneuron.Terminology.API.AppCode.Extensions
 {

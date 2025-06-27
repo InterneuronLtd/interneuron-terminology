@@ -408,7 +408,7 @@ namespace Interneuron.Terminology.BackgroundTaskService.AppCode.DataService
                 restClientOptions.BaseUrl = new UriBuilder(url).Uri;
                 using var client = new RestClient(restClientOptions);
                 
-                var request = new RestRequest() { Method = method, Timeout = -1 };
+                var request = new RestRequest() { Method = method, Timeout = TimeSpan.FromDays(10) };
                 request.AddHeader("Authorization", $"Bearer {accessToken}");
 
                 request.AddHeader("Content-Type", "application/json");
@@ -594,7 +594,8 @@ namespace Interneuron.Terminology.BackgroundTaskService.AppCode.DataService
 
             using (var client = new RestClient(accessTokenUrl))
             {
-                var request = new RestRequest() { Method = Method.Post, Timeout = -1 };
+                //var request = new RestRequest() { Method = Method.Post, Timeout = -1 };
+                var request = new RestRequest() { Method = Method.Post, Timeout = TimeSpan.FromDays(2) };
                 request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
 
                 foreach (var param in headerParams)

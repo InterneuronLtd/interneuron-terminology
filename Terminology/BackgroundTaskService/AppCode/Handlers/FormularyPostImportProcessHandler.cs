@@ -24,11 +24,8 @@ using Interneuron.Terminology.BackgroundTaskService.AppCode.Extensions;
 using Interneuron.Terminology.BackgroundTaskService.AppCode.Handlers.Util;
 using Interneuron.Terminology.BackgroundTaskService.Infrastructure.Domain;
 using Interneuron.Terminology.BackgroundTaskService.Model.DomainModels;
-using Interneuron.Terminology.BackgroundTaskService.Model.Search;
 using Interneuron.Terminology.BackgroundTaskService.Repository;
-using Microsoft.Diagnostics.Tracing;
 using Newtonsoft.Json;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Interneuron.Terminology.BackgroundTaskService.AppCode.Handlers

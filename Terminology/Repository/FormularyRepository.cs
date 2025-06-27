@@ -359,12 +359,16 @@ namespace Interneuron.Terminology.Repository
               from local_formulary.formulary_header fh
               inner join local_formulary.formulary_detail detail on detail.formulary_version_id = fh.formulary_version_id
               where fh.is_latest = true
-                and(fh.product_type = '{productType}')
+                and(fh.product_type = @in_product_type) 
                 and (@in_name::text is null or fh.name_tokens @@ to_tsquery('english',@in_name))
 				and (@in_search_code::text is null or fh.code = @in_search_code)
 				and (@in_recordstatus_codes::text[] is null or fh.rec_status_code = any(@in_recordstatus_codes))
 				and (@in_rnoh_formulary_status_codes::text[] is null or detail.rnoh_formulary_statuscd = any(@in_rnoh_formulary_status_codes))
-                and (({flagsCondition}))";
+                and (({flagsCondition}))"; //parameterised not requied as the statement is prepared such that it contains no request sent  parameters
+
+            // and(fh.product_type = '{productType}') changed to  and(fh.product_type = @product_type) 
+
+
 
             var connString = _configuration.GetValue<string>("TerminologyConfig:Connectionstring");
 
@@ -376,6 +380,7 @@ namespace Interneuron.Terminology.Repository
                 basicSearchResults = await conn.QueryAsync<FormularyBasicSearchResultModel>(qryStmt,
                     new
                     {
+                        in_product_type = productType,//added for sqli fix
                         in_name = tokenToSearch,
                         in_search_code = codeToSearch,
                         in_recordstatus_codes = in_recordstatus_code_vals,

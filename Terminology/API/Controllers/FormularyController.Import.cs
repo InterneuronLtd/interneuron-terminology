@@ -78,7 +78,7 @@ namespace Interneuron.Terminology.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status410Gone)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> InvokePostImportProcess(List<string> codes)
+        public async Task<ActionResult> InvokePostImportProcess([FromBody] List<string> codes)
         {
             if (codes.IsCollectionValid())
             {
